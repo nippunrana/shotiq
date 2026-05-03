@@ -1,13 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cricket-analyzer</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShotIQ | AI Cricket Shot Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">Shot<span>IQ</span></div>
+            <h1>Cricket Shot Analyzer</h1>
+            <p class="subtitle">Upload your batting clips for instant technical analysis powered by Gemini 3 Flash.</p>
+        </header>
+
+        <main id="main-content">
+            <!-- Upload Section -->
+            <section id="upload-section" class="glass-card active">
+                <div class="upload-box" id="drop-zone">
+                    <div class="upload-icon">🏏</div>
+                    <h2>Drop your video here</h2>
+                    <p>or click to browse files</p>
+                    <input type="file" id="file-input" accept="video/*" hidden>
+                </div>
+                
+                <div class="sample-divider">
+                    <span>OR</span>
+                </div>
+                
+                <button id="sample-btn" class="btn-secondary">
+                    <span>📥</span> Test with Sample Video
+                </button>
+            </section>
+
+            <!-- Results Section (Hidden by default) -->
+            <section id="results-section" class="results-layout">
+                <div class="video-panel glass-card">
+                    <div class="video-container">
+                        <video id="video-preview" controls playsinline loop muted></video>
+                    </div>
+                    <button id="reset-btn" class="btn-outline">Analyze Another Clip</button>
+                </div>
+
+                <div class="analysis-panel glass-card">
+                    <div id="loading-state" class="hidden">
+                        <div class="loader"></div>
+                        <h3>Gemini 3 Flash is Thinking...</h3>
+                        <p>Analyzing stance, backlift, and impact point</p>
+                    </div>
+                    <div id="analysis-content">
+                        <!-- Content injected by main.js -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 ShotIQ. Precision Analysis for the Modern Game.</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
 </html>

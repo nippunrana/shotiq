@@ -1,10 +1,14 @@
+const { onRequest } = require("firebase-functions/v2/https");
+const logger = require("firebase-functions/logger");
+const fetch = require("node-fetch");
+
 /**
- * Analysis Prompt for Gemini 3 Flash
- * This file contains the instructions for the AI to analyze cricket shot videos.
- * You can modify this prompt to change the depth or focus of the analysis.
+ * ShotIQ Secure Proxy
+ * This function securely calls the Gemini API so you don't have to 
+ * expose your API key on the frontend.
  */
 
-export const CRICKET_ANALYSIS_PROMPT = `
+const CRICKET_ANALYSIS_PROMPT = `
 Role: You are an expert Cricket Analyst and Data Scientist.
 
 Task: Analyze the provided cricket video or image and return insights that go beyond basic score/speed commentary. Break the play into four layers:
@@ -75,3 +79,65 @@ Output Format: Strict JSON only. Do not include markdown formatting, markdown co
   ]
 }
 `;
+
+exports.analyzeVideo = onRequest({ 
+    cors: true, 
+    secrets: ["GEMINI_API_KEY"] 
+}, async (req, res) => {
+    if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
+    }
+
+    const { video, mimeType } = req.body;
+    if (!video || !mimeType) {
+        return res.status(400).send("Missing video data or mimeType");
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        logger.error("GEMINI_API_KEY not set");
+        return res.status(500).send("Server configuration error");
+    }
+
+    try {
+        logger.info("Calling Gemini API...");
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: CRICKET_ANALYSIS_PROMPT },
+                        {
+                            inline_data: {
+                                mime_type: mimeType,
+                                data: video
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    response_mime_type: "application/json"
+                }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            logger.error("Gemini API Error", data);
+            return res.status(response.status).json(data);
+        }
+
+        // 3. Return the analysis
+        const analysisText = data.candidates[0].content.parts[0].text;
+        res.json({ analysis: analysisText });
+
+    } catch (error) {
+        logger.error("Proxy Error", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
