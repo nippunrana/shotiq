@@ -27,7 +27,7 @@
     <div class="container">
         <header>
             <div class="logo">Shot<span>IQ</span></div>
-            <h1>Cricket Shot Analyzer <span class="version">V1.02</span></h1>
+            <h1>Cricket Shot Analyzer <span class="version">V1.03</span></h1>
             <p class="subtitle">Upload your batting clips for instant technical analysis powered by Gemini 3 Flash.</p>
         </header>
 
@@ -62,14 +62,21 @@
                 <div class="analysis-panel glass-card">
                     <div id="loading-state" class="hidden">
                         <div class="loader"></div>
-                        <h3 id="loading-title">Gemini 3 Flash is Thinking...</h3>
-                        <p id="loading-subtitle">Analyzing stance, backlift, and impact point</p>
+                        <h3 id="loading-title">Analyzing Performance</h3>
+                        <ul class="progress-list">
+                            <li id="step-1" class="pending"><span></span> Preparing technical data</li>
+                            <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
+                            <li id="step-3" class="pending"><span></span> Generating technical report</li>
+                        </ul>
                     </div>
                     <div id="analysis-reasoning" class="hidden">
                         <!-- Thinking process injected here -->
                     </div>
                     <div id="analysis-content">
                         <!-- Content injected by main.js -->
+                    </div>
+                    <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
+                        <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
                     </div>
                 </div>
             </section>

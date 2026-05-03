@@ -171,30 +171,39 @@ async function handleFile(file) {
 
 async function analyzeWithGemini(file) {
     loadingState.classList.remove('hidden');
-    const loadingTitle = document.getElementById('loading-title');
-    const loadingSubtitle = document.getElementById('loading-subtitle');
     const reasoningContainer = document.getElementById('analysis-reasoning');
+    const actionButtons = document.getElementById('action-buttons');
+    const downloadBtn = document.getElementById('download-btn');
     
+    // Reset UI
     analysisContent.innerHTML = '';
     reasoningContainer.innerHTML = '';
     reasoningContainer.classList.add('hidden');
+    actionButtons.classList.add('hidden');
+    
+    const steps = {
+        1: document.getElementById('step-1'),
+        2: document.getElementById('step-2'),
+        3: document.getElementById('step-3')
+    };
+
+    const updateStep = (step, state) => {
+        steps[step].className = state;
+    };
+
+    // Reset steps
+    Object.values(steps).forEach(s => s.className = 'pending');
 
     try {
-        // STEP 1: Upload to Gemini Files API
-        loadingTitle.innerText = "Step 1: Uploading Video...";
-        loadingSubtitle.innerText = `Preparing ${file.name} for AI analysis...`;
-        
-        const uploadResult = await uploadFileToGemini(file);
-        const fileUri = uploadResult.file.uri;
-        const fileName = uploadResult.file.name;
+        // STEP 1: Prepare Video Data (Base64)
+        updateStep(1, 'active');
+        const base64 = await fileToBase64(file);
+        updateStep(1, 'done');
 
-        // STEP 2: Poll for ACTIVE status
-        loadingTitle.innerText = "Step 2: Processing Video...";
-        await waitForFileActive(fileName);
-
-        // STEP 3: Analyze with Gemini 3 Flash
-        loadingTitle.innerText = "Step 3: Gemini 3 Flash is Thinking...";
-        loadingSubtitle.innerText = "Performing deep biomechanical reasoning...";
+        // STEP 2: Technical Reasoning
+        updateStep(2, 'active');
+        // Step 2 and 3 happen together in this mode
+        updateStep(3, 'active');
 
         const url = `https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
         
@@ -206,28 +215,35 @@ async function analyzeWithGemini(file) {
                     parts: [
                         { text: "Analyze this cricket shot with deep technical reasoning: " + CRICKET_ANALYSIS_PROMPT },
                         { 
-                            file_data: { mime_type: file.type, file_uri: fileUri },
-                            mediaResolution: { level: "media_resolution_high" }
+                            inline_data: { mime_type: file.type, data: base64 }
                         }
                     ]
                 }],
                 generationConfig: { 
-                    response_mime_type: "application/json",
-                    includeThoughts: true,
+                    responseMimeType: "application/json",
                     thinkingConfig: { 
-                        thinkingLevel: "high" 
+                        includeThoughts: true,
+                        thinkingLevel: "HIGH" 
                     }
                 }
             })
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "API Error");
+        if (!response.ok) {
+            console.error("Gemini API Error Data:", data);
+            throw new Error(data.error?.message || "API Error");
+        }
+
+        updateStep(2, 'done');
+        updateStep(3, 'done');
 
         // STEP 4: Extract and Render Thoughts + Analysis
         const parts = data.candidates[0].content.parts;
-        const thoughtPart = parts.find(p => p.thought);
-        const textPart = parts.find(p => p.text);
+        const thoughtPart = parts.find(p => p.thought === true);
+        const textPart = parts.find(p => p.text && !p.thought);
+
+        let reportText = "";
 
         if (thoughtPart) {
             reasoningContainer.innerHTML = `
@@ -235,12 +251,29 @@ async function analyzeWithGemini(file) {
                 <div class="reasoning-body">${thoughtPart.text}</div>
             `;
             reasoningContainer.classList.remove('hidden');
+            reportText += `TECHNICAL REASONING:\n${thoughtPart.text}\n\n`;
         }
 
-        if (!textPart) throw new Error("No analysis text returned");
+        if (!textPart) {
+            console.error("Response parts:", parts);
+            throw new Error("No structured analysis returned by the model.");
+        }
 
         const analysis = JSON.parse(textPart.text);
         renderData(analysis);
+        reportText += `ANALYSIS REPORT:\n${JSON.stringify(analysis, null, 2)}`;
+
+        // Setup Download
+        actionButtons.classList.remove('hidden');
+        downloadBtn.onclick = () => {
+            const blob = new Blob([reportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shotiq-analysis-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
         
     } catch (err) {
         analysisContent.innerHTML = `<p style="color:#ff4b4b; background: rgba(255, 75, 75, 0.1); padding: 1rem; border-radius: 8px;">Error: ${err.message}</p>`;
@@ -249,41 +282,13 @@ async function analyzeWithGemini(file) {
     }
 }
 
-async function uploadFileToGemini(file) {
-    const metadata = { file: { displayName: file.name } };
-    const url = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${API_KEY}`;
-    
-    // Using multipart upload for robust handling
-    const formData = new FormData();
-    formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-    formData.append("file", file);
-
-    const response = await fetch(url, {
-        method: 'POST',
-        body: formData
+function fileToBase64(file) {
+    return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => res(reader.result.split(',')[1]);
+        reader.onerror = rej;
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || "Upload failed");
-    }
-
-    return await response.json();
-}
-
-async function waitForFileActive(fileName) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${API_KEY}`;
-    
-    while (true) {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.state === 'ACTIVE') return data;
-        if (data.state === 'FAILED') throw new Error("Video processing failed in Gemini.");
-        
-        // Wait 2 seconds before polling again
-        await new Promise(res => setTimeout(res, 2000));
-    }
 }
 
 function renderData(data) {
