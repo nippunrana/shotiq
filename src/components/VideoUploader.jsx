@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from "../utils/firebase";
 
-const VideoUploader = () => {
+const VideoUploader = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -14,6 +14,7 @@ const VideoUploader = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.type.startsWith('video/')) {
       setFile(selectedFile);
+      setDownloadURL(''); // Reset URL if new file selected
     } else {
       alert('Please select a valid video file.');
     }
@@ -48,6 +49,9 @@ const VideoUploader = () => {
           setDownloadURL(url);
           setUploading(false);
           console.log("File available at:", url);
+          if (onUploadSuccess) {
+            onUploadSuccess(file);
+          }
         });
       }
     );
