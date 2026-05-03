@@ -4,7 +4,7 @@
  */
 
 // --- CONFIGURATION ---
-const API_KEY = 'PASTE_YOUR_GEMINI_API_KEY_HERE';
+let API_KEY = localStorage.getItem('shotiq_api_key') || '';
 const SAMPLE_VIDEO_URL = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
 
 const CRICKET_ANALYSIS_PROMPT = `
@@ -90,6 +90,15 @@ const sampleBtn = document.getElementById('sample-btn');
 const loadingState = document.getElementById('loading-state');
 const analysisContent = document.getElementById('analysis-content');
 
+// API Config Elements
+const settingsToggle = document.getElementById('settings-toggle');
+const apiPanel = document.getElementById('api-panel');
+const apiKeyInput = document.getElementById('api-key-input');
+const saveApiBtn = document.getElementById('save-api-btn');
+
+// Initialize API Key input
+if (API_KEY) apiKeyInput.value = API_KEY;
+
 // --- EVENTS ---
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = (e) => e.target.files[0] && handleFile(e.target.files[0]);
@@ -106,8 +115,39 @@ sampleBtn.onclick = () => {
     alert("Sample video opened. Download and upload it here!");
 };
 
+// --- API CONFIG EVENTS ---
+settingsToggle.onclick = (e) => {
+    e.stopPropagation();
+    apiPanel.classList.toggle('active');
+};
+
+document.addEventListener('click', (e) => {
+    if (!apiPanel.contains(e.target) && e.target !== settingsToggle) {
+        apiPanel.classList.remove('active');
+    }
+});
+
+saveApiBtn.onclick = () => {
+    const newKey = apiKeyInput.value.trim();
+    if (newKey) {
+        API_KEY = newKey;
+        localStorage.setItem('shotiq_api_key', newKey);
+        alert('API Key saved successfully!');
+        apiPanel.classList.remove('active');
+    } else {
+        alert('Please enter a valid API Key.');
+    }
+};
+
 // --- LOGIC ---
 async function handleFile(file) {
+    if (!API_KEY) {
+        alert('Please configure your Gemini API Key first (click the gear icon in the top right).');
+        apiPanel.classList.add('active');
+        fileInput.value = ''; // Reset file input
+        return;
+    }
+
     uploadSection.classList.remove('active');
     resultsSection.classList.add('active');
     videoPreview.src = URL.createObjectURL(file);

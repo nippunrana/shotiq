@@ -11,6 +11,18 @@
 </head>
 <body>
     <div class="background-blobs"></div>
+
+    <div class="api-config-toggle">
+        <button id="settings-toggle" class="settings-btn" title="API Configuration">⚙️</button>
+        <div id="api-panel" class="api-panel glass-card">
+            <h4>API Configuration</h4>
+            <p>Enter your Gemini API key to enable analysis. The key is stored locally in your browser.</p>
+            <div class="input-group">
+                <input type="password" id="api-key-input" class="api-input" placeholder="Enter Gemini API Key">
+                <button id="save-api-btn" class="btn-primary">Save Configuration</button>
+            </div>
+        </div>
+    </div>
     
     <div class="container">
         <header>
