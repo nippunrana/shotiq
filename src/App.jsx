@@ -51,6 +51,7 @@ function App() {
                   autoPlay 
                   loop 
                   muted 
+                  playsInline
                   controls 
                   controlsList="nodownload" 
                   className="video-player" 
