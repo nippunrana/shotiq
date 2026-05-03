@@ -1,57 +1,25 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "./firebase";
 import { CRICKET_ANALYSIS_PROMPT } from "./prompts";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
-
 /**
- * Converts a File object to a base64 string compatible with Gemini API
+ * Analyzes a video file using the secure Cloud Function proxy
+ * @param {string} videoPath - The path to the video in Firebase Storage
  */
-const fileToGenerativePart = async (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64Data = reader.result.split(',')[1];
-      resolve({
-        inlineData: {
-          data: base64Data,
-          mimeType: file.type
-        },
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
-/**
- * Analyzes a video file using Gemini 3 Flash Thinking
- */
-export const analyzeVideo = async (file) => {
-  if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-    throw new Error("Gemini API Key is not configured. Please add it to your .env file.");
-  }
-
+export const analyzeVideo = async (videoPath) => {
   try {
-    // Using Gemini 3 Flash Preview as identified in the search
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-3-flash-preview",
-      generationConfig: {
-        thinkingConfig: {
-          thinkingLevel: "high"
-        },
-        responseMimeType: "application/json"
-      }
+    const analyzeVideoProxy = httpsCallable(functions, 'analyzeVideoProxy');
+    
+    const result = await analyzeVideoProxy({
+      videoPath: videoPath,
+      prompt: CRICKET_ANALYSIS_PROMPT
     });
 
-    const videoPart = await fileToGenerativePart(file);
-    const prompt = CRICKET_ANALYSIS_PROMPT;
-
-    const result = await model.generateContent([prompt, videoPart]);
-    const response = await result.response;
-    return response.text();
+    return result.data.text;
   } catch (error) {
-    console.error("Gemini Analysis Error:", error);
-    throw error;
+    console.error("Gemini Analysis Error (via Proxy):", error);
+    // Extract a more user-friendly error message if available
+    const message = error.details?.message || error.message;
+    throw new Error(message);
   }
 };

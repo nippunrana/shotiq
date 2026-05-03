@@ -18,14 +18,15 @@ function App() {
     }
   }, [videoUrl]);
 
-  const handleUploadSuccess = async (file) => {
+  const handleUploadSuccess = async (file, storagePath) => {
     // Create local URL to immediately play the video
     const url = URL.createObjectURL(file);
     setVideoUrl(url);
     setAnalyzing(true);
     setAnalysis('');
     try {
-      const result = await analyzeVideo(file);
+      // Now passing the storage path to the secure proxy
+      const result = await analyzeVideo(storagePath);
       setAnalysis(result);
     } catch (error) {
       alert("Analysis failed: " + error.message);

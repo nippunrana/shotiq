@@ -50,7 +50,8 @@ const VideoUploader = ({ onUploadSuccess }) => {
           setUploading(false);
           console.log("File available at:", url);
           if (onUploadSuccess) {
-            onUploadSuccess(file);
+            // Pass both the file (for local preview) and the storage path (for analysis)
+            onUploadSuccess(file, storageRef.fullPath);
           }
         });
       }
