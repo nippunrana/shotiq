@@ -6,8 +6,11 @@ import { analyzeVideo } from './utils/gemini'
 function App() {
   const [analysis, setAnalysis] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(null);
 
   const handleUploadSuccess = async (file) => {
+    // Create local URL to immediately play the video
+    setVideoUrl(URL.createObjectURL(file));
     setAnalyzing(true);
     setAnalysis('');
     try {
@@ -20,6 +23,12 @@ function App() {
     }
   };
 
+  const handleReset = () => {
+    setVideoUrl(null);
+    setAnalysis('');
+    setAnalyzing(false);
+  };
+
   return (
     <div className="container">
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -30,12 +39,30 @@ function App() {
         </p>
       </header>
 
-      <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-        <VideoUploader onUploadSuccess={handleUploadSuccess} />
-        
-        {(analyzing || analysis) && (
-          <div style={{ width: '100%', maxWidth: '800px' }}>
-            <AnalysisResult analysis={analysis} loading={analyzing} />
+      <main className="main-content">
+        {!videoUrl ? (
+          <VideoUploader onUploadSuccess={handleUploadSuccess} />
+        ) : (
+          <div className="results-container">
+            <div className="video-section glass-card">
+              <div className="video-wrapper">
+                <video 
+                  src={videoUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  controls 
+                  controlsList="nodownload" 
+                  className="video-player" 
+                />
+              </div>
+              <button onClick={handleReset} className="btn-secondary" style={{ marginTop: '1.5rem', width: '100%' }}>
+                Upload Another Clip
+              </button>
+            </div>
+            <div className="analysis-section">
+              <AnalysisResult analysis={analysis} loading={analyzing} />
+            </div>
           </div>
         )}
       </main>

@@ -3,7 +3,7 @@ import React from 'react';
 const AnalysisResult = ({ analysis, loading }) => {
   if (loading) {
     return (
-      <div className="glass-card" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
+      <div className="glass-card" style={{ textAlign: 'center', padding: '3rem' }}>
         <div className="loader" style={{ margin: '0 auto 1.5rem' }}></div>
         <h3>Gemini 3 Flash is Thinking...</h3>
         <p style={{ color: 'var(--text-dim)' }}>Processing video frames and analyzing technical nuances.</p>
@@ -21,7 +21,7 @@ const AnalysisResult = ({ analysis, loading }) => {
   } catch (e) {
     console.error("Failed to parse analysis JSON:", e);
     return (
-      <div className="glass-card" style={{ marginTop: '2rem' }}>
+      <div className="glass-card">
         <p style={{ color: 'var(--primary)' }}>Analysis received but in unexpected format:</p>
         <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', opacity: 0.8 }}>{analysis}</pre>
       </div>
@@ -41,7 +41,7 @@ const AnalysisResult = ({ analysis, loading }) => {
   );
 
   return (
-    <div className="glass-card" style={{ marginTop: '2rem', animation: 'fadeIn 0.5s ease-out' }}>
+    <div className="glass-card" style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div style={{ fontSize: '1.5rem', marginRight: '12px' }}>⚡</div>
