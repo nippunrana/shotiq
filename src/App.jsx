@@ -17,7 +17,7 @@ function App() {
       </main>
 
       <footer style={{ marginTop: 'auto', padding: '4rem 0 2rem', color: 'var(--text-dim)', fontSize: '0.9rem' }}>
-        <p>© 2024 ShotIQ. Precision Analysis for the Modern Game.</p>
+        <p>© 2026 ShotIQ. Precision Analysis for the Modern Game.</p>
       </footer>
     </div>
   )

@@ -23,8 +23,8 @@ const VideoUploader = () => {
     if (!file) return;
 
     // Check if firebase config is still placeholder
-    if (storage.app.options.apiKey === "YOUR_API_KEY") {
-      alert("Please configure your Firebase credentials in src/utils/firebase.js first!");
+    if (!import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY === "YOUR_API_KEY") {
+      alert("Please configure your Firebase credentials in the .env file first!");
       return;
     }
 
