@@ -95,6 +95,18 @@ h1 {
     letter-spacing: -2px;
 }
 
+.version {
+    font-size: 1rem;
+    vertical-align: middle;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.6rem;
+    border-radius: 8px;
+    color: var(--text-dim);
+    margin-left: 10px;
+    font-weight: 400;
+    letter-spacing: normal;
+}
+
 .subtitle {
     color: var(--text-dim);
     font-size: 1.2rem;
