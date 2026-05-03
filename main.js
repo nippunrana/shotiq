@@ -110,9 +110,22 @@ resetBtn.onclick = () => {
     analysisContent.innerHTML = '';
 };
 
-sampleBtn.onclick = () => {
-    window.open(SAMPLE_VIDEO_URL, '_blank');
-    alert("Sample video opened. Download and upload it here!");
+sampleBtn.onclick = async () => {
+    if (!API_KEY) {
+        alert('Please configure your Gemini API Key first.');
+        apiPanel.classList.add('active');
+        return;
+    }
+    
+    try {
+        loadingState.classList.remove('hidden');
+        const response = await fetch(SAMPLE_VIDEO_URL);
+        const blob = await response.blob();
+        const file = new File([blob], "sample_cricket.mp4", { type: "video/mp4" });
+        handleFile(file);
+    } catch (err) {
+        alert("Failed to load sample video: " + err.message);
+    }
 };
 
 // --- API CONFIG EVENTS ---
@@ -158,11 +171,32 @@ async function handleFile(file) {
 
 async function analyzeWithGemini(file) {
     loadingState.classList.remove('hidden');
+    const loadingTitle = document.getElementById('loading-title');
+    const loadingSubtitle = document.getElementById('loading-subtitle');
+    const reasoningContainer = document.getElementById('analysis-reasoning');
+    
     analysisContent.innerHTML = '';
+    reasoningContainer.innerHTML = '';
+    reasoningContainer.classList.add('hidden');
 
     try {
-        const base64 = await fileToBase64(file);
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // STEP 1: Upload to Gemini Files API
+        loadingTitle.innerText = "Step 1: Uploading Video...";
+        loadingSubtitle.innerText = `Preparing ${file.name} for AI analysis...`;
+        
+        const uploadResult = await uploadFileToGemini(file);
+        const fileUri = uploadResult.file.uri;
+        const fileName = uploadResult.file.name;
+
+        // STEP 2: Poll for ACTIVE status
+        loadingTitle.innerText = "Step 2: Processing Video...";
+        await waitForFileActive(fileName);
+
+        // STEP 3: Analyze with Gemini 3 Flash
+        loadingTitle.innerText = "Step 3: Gemini 3 Flash is Thinking...";
+        loadingSubtitle.innerText = "Performing deep biomechanical reasoning...";
+
+        const url = `https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
         
         const response = await fetch(url, {
             method: 'POST',
@@ -170,34 +204,86 @@ async function analyzeWithGemini(file) {
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: "Analyze this cricket shot: " + CRICKET_ANALYSIS_PROMPT },
-                        { inline_data: { mime_type: file.type, data: base64 } }
+                        { text: "Analyze this cricket shot with deep technical reasoning: " + CRICKET_ANALYSIS_PROMPT },
+                        { 
+                            file_data: { mime_type: file.type, file_uri: fileUri },
+                            mediaResolution: { level: "media_resolution_high" }
+                        }
                     ]
                 }],
-                generationConfig: { response_mime_type: "application/json" }
+                generationConfig: { 
+                    response_mime_type: "application/json",
+                    includeThoughts: true,
+                    thinkingConfig: { 
+                        thinkingLevel: "high" 
+                    }
+                }
             })
         });
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error?.message || "API Error");
 
-        const analysis = JSON.parse(data.candidates[0].content.parts[0].text);
+        // STEP 4: Extract and Render Thoughts + Analysis
+        const parts = data.candidates[0].content.parts;
+        const thoughtPart = parts.find(p => p.thought);
+        const textPart = parts.find(p => p.text);
+
+        if (thoughtPart) {
+            reasoningContainer.innerHTML = `
+                <div class="reasoning-header">🧠 AI Technical Reasoning</div>
+                <div class="reasoning-body">${thoughtPart.text}</div>
+            `;
+            reasoningContainer.classList.remove('hidden');
+        }
+
+        if (!textPart) throw new Error("No analysis text returned");
+
+        const analysis = JSON.parse(textPart.text);
         renderData(analysis);
         
     } catch (err) {
-        analysisContent.innerHTML = `<p style="color:#ff4b4b">Error: ${err.message}</p>`;
+        analysisContent.innerHTML = `<p style="color:#ff4b4b; background: rgba(255, 75, 75, 0.1); padding: 1rem; border-radius: 8px;">Error: ${err.message}</p>`;
     } finally {
         loadingState.classList.add('hidden');
     }
 }
 
-function fileToBase64(file) {
-    return new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => res(reader.result.split(',')[1]);
-        reader.onerror = rej;
+async function uploadFileToGemini(file) {
+    const metadata = { file: { displayName: file.name } };
+    const url = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${API_KEY}`;
+    
+    // Using multipart upload for robust handling
+    const formData = new FormData();
+    formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+    formData.append("file", file);
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData
     });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || "Upload failed");
+    }
+
+    return await response.json();
+}
+
+async function waitForFileActive(fileName) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${API_KEY}`;
+    
+    while (true) {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.state === 'ACTIVE') return data;
+        if (data.state === 'FAILED') throw new Error("Video processing failed in Gemini.");
+        
+        // Wait 2 seconds before polling again
+        await new Promise(res => setTimeout(res, 2000));
+    }
 }
 
 function renderData(data) {
