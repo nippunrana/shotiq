@@ -24,7 +24,7 @@ body {
   overflow-x: hidden;
   background-image: 
     linear-gradient(rgba(10, 14, 20, 0.85), rgba(10, 14, 20, 0.85)),
-    url('/Users/nippunrana/.gemini/antigravity/brain/20c83e6e-2735-414d-9594-6994081d301c/cricket_analyzer_bg_1777805026059.png');
+    url('./assets/bg.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
