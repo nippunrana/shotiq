@@ -292,21 +292,83 @@ function fileToBase64(file) {
 }
 
 function renderData(data) {
-    // Elegant JSON to HTML rendering
+    const getRatingClass = (rating) => {
+        const r = rating?.toLowerCase();
+        if (r === 'good') return 'rating-good';
+        if (r === 'average') return 'rating-average';
+        if (r === 'poor') return 'rating-poor';
+        return '';
+    };
+
+    const metrics = [
+        { label: 'Direction', value: data.direction },
+        { label: 'Length', value: data.delivery_data.length },
+        { label: 'Line', value: data.delivery_data.line },
+        { label: 'Impact', value: data.biomechanics_impact.contact_quality },
+        { label: 'Angle', value: data.biomechanics_impact.launch_angle },
+        { label: 'Control', value: data.outcome_stats.control_status }
+    ];
+
     analysisContent.innerHTML = `
-        <h2>${data.shot_type_mechanical} (${data.shot_type_colloquial})</h2>
-        <p><strong>Direction:</strong> ${data.direction}</p>
-        <p><strong>Impact:</strong> ${data.biomechanics_impact.contact_quality} (${data.biomechanics_impact.launch_angle})</p>
-        
-        <div style="margin-top:2rem">
-            <h3>Batter Feedback</h3>
-            <p>${data.evaluation_and_feedback.batter.reasoning}</p>
-            <p><em>Pro Tip: ${data.evaluation_and_feedback.batter.suggestion}</em></p>
+        <div class="analysis-header">
+            <div class="shot-title-group">
+                <div class="colloquial">${data.shot_type_colloquial}</div>
+                <h2>${data.shot_type_mechanical}</h2>
+            </div>
+            <div class="confidence-badge">
+                <span class="confidence-dot"></span>
+                ${data.overall_confidence}% Confidence
+            </div>
         </div>
 
-        <div style="margin-top:2rem">
-            <h3>Bowler Feedback</h3>
-            <p>${data.evaluation_and_feedback.bowler.reasoning}</p>
+        <div class="metrics-grid">
+            ${metrics.map(m => `
+                <div class="metric-card">
+                    <div class="metric-label">${m.label}</div>
+                    <div class="metric-value">${m.value}</div>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="evaluation-section">
+            <div class="eval-card batter">
+                <div class="eval-header">
+                    <h3>Batter Feedback</h3>
+                    <span class="rating-tag ${getRatingClass(data.evaluation_and_feedback.batter.quality_rating)}">
+                        ${data.evaluation_and_feedback.batter.quality_rating}
+                    </span>
+                </div>
+                <div class="eval-body">
+                    <p>${data.evaluation_and_feedback.batter.reasoning}</p>
+                    <div class="eval-suggestion">
+                        <strong>Coach's Suggestion</strong>
+                        ${data.evaluation_and_feedback.batter.suggestion}
+                    </div>
+                </div>
+            </div>
+
+            <div class="eval-card bowler">
+                <div class="eval-header">
+                    <h3>Bowler Feedback</h3>
+                    <span class="rating-tag ${getRatingClass(data.evaluation_and_feedback.bowler.quality_rating)}">
+                        ${data.evaluation_and_feedback.bowler.quality_rating}
+                    </span>
+                </div>
+                <div class="eval-body">
+                    <p>${data.evaluation_and_feedback.bowler.reasoning}</p>
+                    <div class="eval-suggestion">
+                        <strong>Strategic Adjustments</strong>
+                        ${data.evaluation_and_feedback.bowler.suggestion}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="observations-list">
+            <h3>Technical Observations</h3>
+            <ul>
+                ${data.observations.map(obs => `<li>${obs}</li>`).join('')}
+            </ul>
         </div>
     `;
 }
