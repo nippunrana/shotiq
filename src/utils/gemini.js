@@ -36,9 +36,10 @@ export const analyzeVideo = async (file) => {
     // Using Gemini 3 Flash Preview as identified in the search
     const model = genAI.getGenerativeModel({ 
       model: "gemini-3-flash-preview",
-      // Based on May 2026 docs, thinking_level is a generationConfig parameter
       generationConfig: {
-        thinking_level: "high" 
+        thinkingConfig: {
+          thinkingLevel: "HIGH"
+        }
       }
     });
 
