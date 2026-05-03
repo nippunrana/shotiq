@@ -38,8 +38,9 @@ export const analyzeVideo = async (file) => {
       model: "gemini-3-flash-preview",
       generationConfig: {
         thinkingConfig: {
-          thinkingLevel: "HIGH"
-        }
+          thinkingLevel: "high"
+        },
+        responseMimeType: "application/json"
       }
     });
 
