@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import VideoUploader from './components/VideoUploader'
 import AnalysisResult from './components/AnalysisResult'
 import { analyzeVideo } from './utils/gemini'
@@ -7,10 +7,21 @@ function App() {
   const [analysis, setAnalysis] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current && videoUrl) {
+      // Force play when videoUrl is ready
+      videoRef.current.play().catch(error => {
+        console.warn("Autoplay failed, browser requires user interaction:", error);
+      });
+    }
+  }, [videoUrl]);
 
   const handleUploadSuccess = async (file) => {
     // Create local URL to immediately play the video
-    setVideoUrl(URL.createObjectURL(file));
+    const url = URL.createObjectURL(file);
+    setVideoUrl(url);
     setAnalyzing(true);
     setAnalysis('');
     try {
@@ -24,6 +35,9 @@ function App() {
   };
 
   const handleReset = () => {
+    if (videoUrl) {
+      URL.revokeObjectURL(videoUrl);
+    }
     setVideoUrl(null);
     setAnalysis('');
     setAnalyzing(false);
@@ -47,6 +61,7 @@ function App() {
             <div className="video-section glass-card">
               <div className="video-wrapper">
                 <video 
+                  ref={videoRef}
                   src={videoUrl} 
                   autoPlay 
                   loop 
