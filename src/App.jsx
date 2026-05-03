@@ -6,6 +6,7 @@ import { analyzeVideo } from './utils/gemini'
 function App() {
   const [analysis, setAnalysis] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const [loadingSample, setLoadingSample] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
   const videoRef = useRef(null);
 
@@ -34,6 +35,23 @@ function App() {
     }
   };
 
+  const handleSampleTest = async () => {
+    const sampleUrl = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
+    setLoadingSample(true);
+    try {
+      const response = await fetch(sampleUrl);
+      if (!response.ok) throw new Error("Failed to fetch sample video");
+      const blob = await response.blob();
+      const file = new File([blob], "sample_video.mp4", { type: "video/mp4" });
+      await handleUploadSuccess(file);
+    } catch (error) {
+      console.error("Sample video error:", error);
+      alert("Could not load sample video. Please try uploading your own.");
+    } finally {
+      setLoadingSample(false);
+    }
+  };
+
   const handleReset = () => {
     if (videoUrl) {
       URL.revokeObjectURL(videoUrl);
@@ -55,7 +73,31 @@ function App() {
 
       <main className="main-content">
         {!videoUrl ? (
-          <VideoUploader onUploadSuccess={handleUploadSuccess} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', width: '100%' }}>
+            <VideoUploader onUploadSuccess={handleUploadSuccess} />
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: 'var(--text-dim)', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: '600', letterSpacing: '2px' }}>OR</p>
+              <button 
+                onClick={handleSampleTest} 
+                className="btn-secondary" 
+                disabled={loadingSample}
+                style={{ 
+                  padding: '1rem 2.5rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.75rem',
+                  fontSize: '1.1rem',
+                  borderWidth: '2px'
+                }}
+              >
+                {loadingSample ? (
+                  <>⏳ Preparing Sample...</>
+                ) : (
+                  <>🏏 Test with Sample Video</>
+                )}
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="results-container">
             <div className="video-section glass-card">
