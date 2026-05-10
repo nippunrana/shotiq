@@ -15,20 +15,36 @@
 </head>
 
 <body>
-    <div class="background-blobs"></div>
-
-
+    <div class="background-container"></div>
+    <div class="background-overlay"></div>
 
     <div class="container">
-        <header>
-            <div class="logo">Shot<span>IQ</span></div>
-            <h1>Cricket Shot Analyzer <span class="version">V1.03</span></h1>
-            <p class="subtitle">Upload your batting clips for instant technical analysis powered by Gemini 3 Flash.</p>
-        </header>
+        
+        <!-- View 1: Welcome Screen -->
+        <section id="welcome-view" class="view active">
+            <div class="hero-content glass-card">
+                <div class="logo hero-logo">Shot<span>IQ</span></div>
+                <h1 class="hero-title">Precision Cricket Analysis <span class="version">V1.03</span></h1>
+                <p class="hero-subtitle">Upload your batting or bowling clips for instant, biomechanical technical analysis powered by Google Gemini 3.1 Pro.</p>
+                
+                <div class="hero-features">
+                    <div class="feature"><span class="icon">🎯</span> Advanced Biomechanics</div>
+                    <div class="feature"><span class="icon">⚡</span> Instant Feedback</div>
+                    <div class="feature"><span class="icon">📈</span> Pro-Level Coaching</div>
+                </div>
 
-        <main id="main-content">
-            <!-- Upload Section -->
-            <section id="upload-section" class="glass-card active">
+                <button id="start-btn" class="btn-primary btn-large">Get Started 🚀</button>
+            </div>
+        </section>
+
+        <!-- View 2: Upload Screen -->
+        <section id="upload-view" class="view">
+            <header class="top-bar">
+                <div class="logo">Shot<span>IQ</span></div>
+                <button id="back-to-home" class="btn-icon">🏠 Home</button>
+            </header>
+
+            <div class="upload-wrapper glass-card">
                 <div class="upload-box" id="drop-zone">
                     <div class="upload-icon">🏏</div>
                     <h2>Drop your video here</h2>
@@ -43,40 +59,47 @@
                 <button id="sample-btn" class="btn-secondary">
                     <span>📥</span> Test with Sample Video
                 </button>
-            </section>
+            </div>
+        </section>
 
-            <!-- Results Section (Hidden by default) -->
-            <section id="results-section" class="results-layout">
-                <div class="video-panel glass-card">
-                    <div class="video-container">
-                        <video id="video-preview" controls playsinline loop muted></video>
-                    </div>
-                    <button id="reset-btn" class="btn-outline">Analyze Another Clip</button>
-                </div>
+        <!-- View 3: Analysis Screen -->
+        <section id="analysis-view" class="view">
+            <header class="top-bar">
+                <div class="logo">Shot<span>IQ</span></div>
+                <button id="reset-btn" class="btn-secondary btn-small">Analyze Another Clip</button>
+            </header>
 
-                <div class="analysis-panel glass-card">
-                    <div id="loading-state" class="hidden">
-                        <div class="loader"></div>
-                        <h3 id="loading-title">Analyzing Performance</h3>
-                        <ul class="progress-list">
-                            <li id="step-1" class="pending"><span></span> Preparing technical data</li>
-                            <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
-                            <li id="step-3" class="pending"><span></span> Generating technical report</li>
-                        </ul>
+            <main id="main-content">
+                <section id="results-section" class="results-layout">
+                    <div class="video-panel glass-card">
+                        <div class="video-container">
+                            <video id="video-preview" controls playsinline loop muted></video>
+                        </div>
                     </div>
-                    <div id="analysis-reasoning" class="hidden">
-                        <!-- Thinking process injected here -->
+
+                    <div class="analysis-panel glass-card">
+                        <div id="loading-state" class="hidden">
+                            <div class="loader"></div>
+                            <h3 id="loading-title">Analyzing Performance</h3>
+                            <ul class="progress-list">
+                                <li id="step-1" class="pending"><span></span> Preparing technical data</li>
+                                <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
+                                <li id="step-3" class="pending"><span></span> Generating technical report</li>
+                            </ul>
+                        </div>
+                        <div id="analysis-reasoning" class="hidden">
+                            <!-- Thinking process injected here -->
+                        </div>
+                        <div id="analysis-content">
+                            <!-- Content injected by main.js -->
+                        </div>
+                        <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
+                            <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
+                        </div>
                     </div>
-                    <div id="analysis-content">
-                        <!-- Content injected by main.js -->
-                    </div>
-                    <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
-                        <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical
-                            Report</button>
-                    </div>
-                </div>
-            </section>
-        </main>
+                </section>
+            </main>
+        </section>
 
         <footer>
             <p>&copy; 2026 ShotIQ. Precision Analysis for the Modern Game.</p>

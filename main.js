@@ -12,8 +12,13 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1alpha/models
 
 
 // --- DOM ELEMENTS ---
-const uploadSection = document.getElementById('upload-section');
-const resultsSection = document.getElementById('results-section');
+const welcomeView = document.getElementById('welcome-view');
+const uploadView = document.getElementById('upload-view');
+const analysisView = document.getElementById('analysis-view');
+
+const startBtn = document.getElementById('start-btn');
+const backToHomeBtn = document.getElementById('back-to-home');
+
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 const videoPreview = document.getElementById('video-preview');
@@ -24,13 +29,21 @@ const analysisContent = document.getElementById('analysis-content');
 
 
 
+// --- VIEW MANAGEMENT ---
+function switchView(viewElement) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    viewElement.classList.add('active');
+}
+
 // --- EVENTS ---
+startBtn.onclick = () => switchView(uploadView);
+backToHomeBtn.onclick = () => switchView(welcomeView);
+
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = (e) => e.target.files[0] && handleFile(e.target.files[0]);
 
 resetBtn.onclick = () => {
-    resultsSection.classList.remove('active');
-    uploadSection.classList.add('active');
+    switchView(uploadView);
     videoPreview.src = '';
     analysisContent.innerHTML = '';
 };
@@ -43,8 +56,7 @@ sampleBtn.onclick = async () => {
 
 // --- LOGIC ---
 async function handleFile(file) {
-    uploadSection.classList.remove('active');
-    resultsSection.classList.add('active');
+    switchView(analysisView);
     videoPreview.src = URL.createObjectURL(file);
     videoPreview.play();
     
