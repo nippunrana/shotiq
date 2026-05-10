@@ -6,36 +6,6 @@
 
 header('Content-Type: application/json');
 
-// 0. Handle GET request for key status info
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $serverKeySet = false;
-    $maskedKey = '';
-
-    $sysKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? '');
-    if ($sysKey && $sysKey !== 'YOUR_GEMINI_API_KEY_HERE') {
-        $serverKeySet = true;
-        $maskedKey = '****' . substr($sysKey, -4);
-    } else {
-        $envFile = __DIR__ . '/../.env';
-        if (file_exists($envFile)) {
-            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($lines as $line) {
-                if (strpos(trim($line), 'GEMINI_API_KEY') === 0) {
-                    $parts = explode('=', $line, 2);
-                    $val = trim($parts[1] ?? '');
-                    if ($val && $val !== 'YOUR_GEMINI_API_KEY_HERE') {
-                        $serverKeySet = true;
-                        $maskedKey = '****' . substr($val, -4);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    echo json_encode(['serverKeySet' => $serverKeySet, 'maskedKey' => $maskedKey]);
-    exit;
-}
-
 // 1. Load Server API Key
 $serverKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? '');
 
@@ -52,23 +22,7 @@ if (!$serverKey) {
         }
     }
 }
-$browserKey = $_SERVER['HTTP_X_GEMINI_API_KEY'] ?? '';
-$requestedSource = $_SERVER['HTTP_X_API_SOURCE'] ?? 'auto';
-
-$apiKey = '';
-
-if ($requestedSource === 'server') {
-    $apiKey = ($serverKey !== 'YOUR_GEMINI_API_KEY_HERE') ? $serverKey : '';
-} elseif ($requestedSource === 'browser') {
-    $apiKey = $browserKey;
-} else {
-    // Auto-fallback logic
-    if ($serverKey && $serverKey !== 'YOUR_GEMINI_API_KEY_HERE') {
-        $apiKey = $serverKey;
-    } else {
-        $apiKey = $browserKey;
-    }
-}
+$apiKey = ($serverKey && $serverKey !== 'YOUR_GEMINI_API_KEY_HERE') ? $serverKey : '';
 
 // Final validation
 if (!$apiKey) {
