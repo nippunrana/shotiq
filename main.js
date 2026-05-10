@@ -392,41 +392,69 @@ function copyJSON() {
 async function downloadReport() {
     if (!rawAnalysisJSON) return;
     
-    showToast('Generating PDF Report...', 'info');
+    showToast('Generating Pro Analytics Report...', 'info');
 
     try {
-        // 1. Populate Template
-        document.getElementById('pdf-date').textContent = new Date().toLocaleDateString();
-        document.getElementById('pdf-shot-name').textContent = rawAnalysisJSON.shot_type_mechanical || 'Shot Analysis';
-        document.getElementById('pdf-shot-colloquial').textContent = rawAnalysisJSON.shot_type_colloquial || '';
-        document.getElementById('pdf-reasoning-text').textContent = rawReasoningText || 'No technical reasoning provided.';
+        // 1. Populate Template Header & Meta
+        document.getElementById('pdf-date').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        document.getElementById('pdf-report-id-val').textContent = 'SIQ-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         
-        // Populate Characteristics
+        // Hero Data
+        document.getElementById('pdf-shot-name').textContent = rawAnalysisJSON.shot_type_mechanical || 'Technical Analysis';
+        document.getElementById('pdf-shot-colloquial').textContent = rawAnalysisJSON.shot_type_colloquial || '';
+        document.getElementById('pdf-overall-confidence').textContent = rawAnalysisJSON.overall_confidence || '0';
+
+        // Main Column
+        document.getElementById('pdf-reasoning-text').textContent = rawReasoningText || 'No technical reasoning provided.';
         document.getElementById('pdf-characteristics').textContent = rawAnalysisJSON.characteristics || 'No characteristics provided.';
 
-        // Populate Observations
         const obsList = document.getElementById('pdf-observations');
         if (rawAnalysisJSON.observations && rawAnalysisJSON.observations.length > 0) {
-            obsList.innerHTML = rawAnalysisJSON.observations.map(obs => `<li style="margin-bottom: 8px;">${obs}</li>`).join('');
+            obsList.innerHTML = rawAnalysisJSON.observations.map(obs => `<li>${obs}</li>`).join('');
         } else {
-            obsList.innerHTML = '<li>No observations provided.</li>';
+            obsList.innerHTML = '<li>No specific observations recorded.</li>';
         }
 
-        // Populate Metrics
-        const metrics = [
-            { label: 'Length', value: rawAnalysisJSON.delivery_data?.length || '-' },
-            { label: 'Line', value: rawAnalysisJSON.delivery_data?.line || '-' },
-            { label: 'Impact', value: rawAnalysisJSON.biomechanics_impact?.contact_quality || '-' },
-            { label: 'Control', value: rawAnalysisJSON.outcome_stats?.control_status || '-' }
+        // Stats Column - Ball Data
+        const ballMetrics = [
+            { label: 'Length', value: rawAnalysisJSON.delivery_data?.length || 'Unknown' },
+            { label: 'Line', value: rawAnalysisJSON.delivery_data?.line || 'Unknown' },
+            { label: 'Deviation', value: rawAnalysisJSON.delivery_data?.deviation || 'Straight' }
         ];
-        document.getElementById('pdf-metrics').innerHTML = metrics.map(m => `
-            <div class="pdf-metric-card">
-                <div class="pdf-metric-label">${m.label}</div>
-                <div class="pdf-metric-value">${m.value}</div>
+        document.getElementById('pdf-ball-metrics').innerHTML = ballMetrics.map(m => `
+            <div class="pdf-stat-item">
+                <span class="pdf-stat-label">${m.label}</span>
+                <span class="pdf-stat-val">${m.value}</span>
             </div>
         `).join('');
 
-        // Populate Evals
+        // Stats Column - Biomechanics
+        const bioMetrics = [
+            { label: 'Trigger', value: rawAnalysisJSON.biomechanics_impact?.trigger_movement || 'Unknown' },
+            { label: 'Head Position', value: rawAnalysisJSON.biomechanics_impact?.head_alignment || 'Unknown' },
+            { label: 'Launch Angle', value: rawAnalysisJSON.biomechanics_impact?.launch_angle || 'Unknown' },
+            { label: 'Contact Quality', value: rawAnalysisJSON.biomechanics_impact?.contact_quality || 'Unknown' }
+        ];
+        document.getElementById('pdf-bio-metrics').innerHTML = bioMetrics.map(m => `
+            <div class="pdf-stat-item">
+                <span class="pdf-stat-label">${m.label}</span>
+                <span class="pdf-stat-val">${m.value}</span>
+            </div>
+        `).join('');
+
+        // Stats Column - Outcome
+        const outcomeMetrics = [
+            { label: 'Control', value: rawAnalysisJSON.outcome_stats?.control_status || 'Unknown' },
+            { label: 'Visible Result', value: rawAnalysisJSON.outcome_stats?.visible_result || 'Runs' }
+        ];
+        document.getElementById('pdf-outcome-metrics').innerHTML = outcomeMetrics.map(m => `
+            <div class="pdf-stat-item">
+                <span class="pdf-stat-label">${m.label}</span>
+                <span class="pdf-stat-val">${m.value}</span>
+            </div>
+        `).join('');
+
+        // Evaluation Grid
         const getRatingClass = (rating) => {
             const r = (rating || '').toLowerCase();
             if (r === 'good') return 'good';
@@ -439,44 +467,44 @@ async function downloadReport() {
         const bowler = rawAnalysisJSON.evaluation_and_feedback?.bowler || {};
 
         document.getElementById('pdf-evals').innerHTML = `
-            <div class="pdf-eval-card batter">
+            <div class="pdf-eval-card">
                 <div class="pdf-eval-header">
-                    <div class="pdf-eval-role">Batter Analysis</div>
-                    <div class="pdf-badge ${getRatingClass(batter.quality_rating)}">${batter.quality_rating || '-'}</div>
+                    <div class="pdf-eval-role">Batter Performance</div>
+                    <div class="pdf-badge ${getRatingClass(batter.quality_rating)}">${batter.quality_rating || 'N/A'}</div>
                 </div>
-                <div class="pdf-eval-text">${batter.reasoning || '-'}</div>
-                <div class="pdf-suggestion"><strong>Coach's Suggestion</strong>${batter.suggestion || '-'}</div>
+                <div class="pdf-eval-text">${batter.reasoning || 'No reasoning provided.'}</div>
+                <div class="pdf-suggestion"><strong>Technical Focus</strong>${batter.suggestion || 'No suggestion provided.'}</div>
             </div>
-            <div class="pdf-eval-card bowler">
+            <div class="pdf-eval-card">
                 <div class="pdf-eval-header">
-                    <div class="pdf-eval-role">Bowler Analysis</div>
-                    <div class="pdf-badge ${getRatingClass(bowler.quality_rating)}">${bowler.quality_rating || '-'}</div>
+                    <div class="pdf-eval-role">Bowler Strategy</div>
+                    <div class="pdf-badge ${getRatingClass(bowler.quality_rating)}">${bowler.quality_rating || 'N/A'}</div>
                 </div>
-                <div class="pdf-eval-text">${bowler.reasoning || '-'}</div>
-                <div class="pdf-suggestion"><strong>Strategic Adjustment</strong>${bowler.suggestion || '-'}</div>
+                <div class="pdf-eval-text">${bowler.reasoning || 'No reasoning provided.'}</div>
+                <div class="pdf-suggestion"><strong>Strategic Shift</strong>${bowler.suggestion || 'No suggestion provided.'}</div>
             </div>
         `;
 
         // 2. Generate PDF
         const template = document.getElementById('pdf-template');
-        template.parentElement.style.display = 'block'; // Make visible temporarily for html2pdf
+        template.parentElement.style.display = 'block'; 
         
         const opt = {
-            margin:       0,
-            filename:     `ShotIQ-Report-${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'px', format: [800, template.scrollHeight + 100], orientation: 'portrait' } // Auto-height
+            margin:       [0, 0, 0, 0],
+            filename:     `ShotIQ_Report_${Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 3, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'px', format: [800, template.scrollHeight + 50], orientation: 'portrait' }
         };
 
         await html2pdf().set(opt).from(template).save();
         
-        template.parentElement.style.display = 'none'; // Hide again
-        showToast('Report Downloaded Successfully!', 'success');
+        template.parentElement.style.display = 'none'; 
+        showToast('Pro Report Generated!', 'success');
 
     } catch (err) {
         console.error("PDF Generation Error:", err);
-        showToast('Failed to generate PDF.', 'error');
+        showToast('Export failed. Check console.', 'error');
         document.getElementById('pdf-template').parentElement.style.display = 'none';
     }
 }
