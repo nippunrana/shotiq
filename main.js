@@ -398,29 +398,92 @@ function copyJSON() {
         .catch(() => showToast('Failed to copy', 'error'));
 }
 
-function downloadReport() {
+async function downloadReport() {
     if (!rawAnalysisJSON) return;
     
-    let reportText = "ShotIQ Technical Report\n";
-    reportText += "=======================\n\n";
-    reportText += `Shot: ${rawAnalysisJSON.shot_type_mechanical} (${rawAnalysisJSON.shot_type_colloquial})\n`;
-    reportText += `Confidence: ${rawAnalysisJSON.overall_confidence}%\n\n`;
-    
-    if (rawReasoningText) {
-        reportText += "--- AI REASONING ---\n";
-        reportText += rawReasoningText + "\n\n";
+    showToast('Generating PDF Report...', 'info');
+
+    try {
+        // 1. Capture Video Frame
+        const canvas = document.createElement('canvas');
+        canvas.width = videoPreview.videoWidth;
+        canvas.height = videoPreview.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoPreview, 0, 0, canvas.width, canvas.height);
+        const frameDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+        // 2. Populate Template
+        document.getElementById('pdf-date').textContent = new Date().toLocaleDateString();
+        document.getElementById('pdf-screenshot').src = frameDataUrl;
+        document.getElementById('pdf-shot-name').textContent = rawAnalysisJSON.shot_type_mechanical || 'Shot Analysis';
+        document.getElementById('pdf-shot-colloquial').textContent = rawAnalysisJSON.shot_type_colloquial || '';
+        document.getElementById('pdf-reasoning-text').textContent = rawReasoningText || 'No technical reasoning provided.';
+
+        // Populate Metrics
+        const metrics = [
+            { label: 'Length', value: rawAnalysisJSON.delivery_data?.length || '-' },
+            { label: 'Line', value: rawAnalysisJSON.delivery_data?.line || '-' },
+            { label: 'Impact', value: rawAnalysisJSON.biomechanics_impact?.contact_quality || '-' },
+            { label: 'Control', value: rawAnalysisJSON.outcome_stats?.control_status || '-' }
+        ];
+        document.getElementById('pdf-metrics').innerHTML = metrics.map(m => `
+            <div class="pdf-metric-card">
+                <div class="pdf-metric-label">${m.label}</div>
+                <div class="pdf-metric-value">${m.value}</div>
+            </div>
+        `).join('');
+
+        // Populate Evals
+        const getRatingClass = (rating) => {
+            const r = (rating || '').toLowerCase();
+            if (r === 'good') return 'good';
+            if (r === 'average') return 'average';
+            if (r === 'poor') return 'poor';
+            return '';
+        };
+
+        const batter = rawAnalysisJSON.evaluation_and_feedback?.batter || {};
+        const bowler = rawAnalysisJSON.evaluation_and_feedback?.bowler || {};
+
+        document.getElementById('pdf-evals').innerHTML = `
+            <div class="pdf-eval-card batter">
+                <div class="pdf-eval-header">
+                    <div class="pdf-eval-role">Batter Analysis</div>
+                    <div class="pdf-badge ${getRatingClass(batter.quality_rating)}">${batter.quality_rating || '-'}</div>
+                </div>
+                <div class="pdf-eval-text">${batter.reasoning || '-'}</div>
+                <div class="pdf-suggestion"><strong>Coach's Suggestion</strong>${batter.suggestion || '-'}</div>
+            </div>
+            <div class="pdf-eval-card bowler">
+                <div class="pdf-eval-header">
+                    <div class="pdf-eval-role">Bowler Analysis</div>
+                    <div class="pdf-badge ${getRatingClass(bowler.quality_rating)}">${bowler.quality_rating || '-'}</div>
+                </div>
+                <div class="pdf-eval-text">${bowler.reasoning || '-'}</div>
+                <div class="pdf-suggestion"><strong>Strategic Adjustment</strong>${bowler.suggestion || '-'}</div>
+            </div>
+        `;
+
+        // 3. Generate PDF
+        const template = document.getElementById('pdf-template');
+        template.parentElement.style.display = 'block'; // Make visible temporarily for html2pdf
+        
+        const opt = {
+            margin:       0,
+            filename:     `ShotIQ-Report-${Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'px', format: [800, template.scrollHeight + 100], orientation: 'portrait' } // Auto-height
+        };
+
+        await html2pdf().set(opt).from(template).save();
+        
+        template.parentElement.style.display = 'none'; // Hide again
+        showToast('Report Downloaded Successfully!', 'success');
+
+    } catch (err) {
+        console.error("PDF Generation Error:", err);
+        showToast('Failed to generate PDF.', 'error');
+        document.getElementById('pdf-template').parentElement.style.display = 'none';
     }
-
-    reportText += "--- DATA EXPORT ---\n";
-    reportText += JSON.stringify(rawAnalysisJSON, null, 2);
-
-    const blob = new Blob([reportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `shotiq-report-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    showToast('Report downloaded!', 'success');
 }
