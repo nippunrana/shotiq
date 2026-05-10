@@ -4,6 +4,7 @@
  */
 
 // --- CONFIGURATION ---
+const API_ENDPOINT = 'api.php';
 let API_KEY = localStorage.getItem('shotiq_api_key') || '';
 const SAMPLE_VIDEO_URL = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
 
@@ -42,12 +43,6 @@ resetBtn.onclick = () => {
 };
 
 sampleBtn.onclick = async () => {
-    if (!API_KEY) {
-        alert('Please configure your Gemini API Key first.');
-        apiPanel.classList.add('active');
-        return;
-    }
-    
     try {
         loadingState.classList.remove('hidden');
         const response = await fetch(SAMPLE_VIDEO_URL);
@@ -85,13 +80,6 @@ saveApiBtn.onclick = () => {
 
 // --- LOGIC ---
 async function handleFile(file) {
-    if (!API_KEY) {
-        alert('Please configure your Gemini API Key first (click the gear icon in the top right).');
-        apiPanel.classList.add('active');
-        fileInput.value = ''; // Reset file input
-        return;
-    }
-
     uploadSection.classList.remove('active');
     resultsSection.classList.add('active');
     videoPreview.src = URL.createObjectURL(file);
@@ -136,11 +124,13 @@ async function analyzeWithGemini(file) {
         // Step 2 and 3 happen together in this mode
         updateStep(3, 'active');
 
-        const url = `https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
-        
-        const response = await fetch(url, {
+        // Analysis request to PHP backend
+        const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Gemini-API-Key': API_KEY // Optional fallback
+            },
             body: JSON.stringify({
                 contents: [{
                     parts: [
@@ -163,7 +153,15 @@ async function analyzeWithGemini(file) {
         const data = await response.json();
         if (!response.ok) {
             console.error("Gemini API Error Data:", data);
-            throw new Error(data.error?.message || "API Error");
+            
+            // If the server tells us a key is required, open the settings panel
+            if (data.error === 'API_KEY_REQUIRED') {
+                alert('An API Key is required. Please enter one in the settings (gear icon) or configure the server .env file.');
+                apiPanel.classList.add('active');
+                throw new Error("API Key required");
+            }
+            
+            throw new Error(data.error?.message || data.error || "API Error");
         }
 
         updateStep(2, 'done');
