@@ -4,9 +4,9 @@
  */
 
 // --- CONFIGURATION ---
-const API_ENDPOINT = 'api/index.php';
+const KEY_ENDPOINT = 'api/key.php';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent';
 
-const SAMPLE_VIDEO_URL = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
 
 // (CRICKET_ANALYSIS_PROMPT is now loaded from prompts.js)
 
@@ -36,15 +36,7 @@ resetBtn.onclick = () => {
 };
 
 sampleBtn.onclick = async () => {
-    try {
-        loadingState.classList.remove('hidden');
-        const response = await fetch(SAMPLE_VIDEO_URL);
-        const blob = await response.blob();
-        const file = new File([blob], "sample_cricket.mp4", { type: "video/mp4" });
-        handleFile(file);
-    } catch (err) {
-        alert("Failed to load sample video: " + err.message);
-    }
+    alert('Please upload your own cricket video clip to analyze.');
 };
 
 
