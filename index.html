@@ -2,42 +2,41 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShotIQ | AI Cricket Shot Analyzer</title>
+    <meta name="description" content="AI-powered cricket shot analysis. Upload your batting or bowling clips for instant biomechanical technical analysis powered by Google Gemini.">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <div class="background-container"></div>
     <div class="background-overlay"></div>
 
+    <!-- Toast Notification System -->
+    <div id="toast-container"></div>
+
     <div class="container">
-        
-        <!-- View 1: Welcome Screen -->
+
+        <!-- ======================== VIEW 1: WELCOME ======================== -->
         <section id="welcome-view" class="view active">
             <div class="hero-content glass-card">
                 <div class="logo hero-logo">Shot<span>IQ</span></div>
                 <h1 class="hero-title">Precision Cricket Analysis <span class="version">V1.03</span></h1>
                 <p class="hero-subtitle">Upload your batting or bowling clips for instant, biomechanical technical analysis powered by Google Gemini 3.1 Pro.</p>
-                
                 <div class="hero-features">
                     <div class="feature"><span class="icon">🎯</span> Advanced Biomechanics</div>
                     <div class="feature"><span class="icon">⚡</span> Instant Feedback</div>
                     <div class="feature"><span class="icon">📈</span> Pro-Level Coaching</div>
                 </div>
-
                 <button id="start-btn" class="btn-primary btn-large">Get Started 🚀</button>
             </div>
         </section>
 
-        <!-- View 2: Upload Screen -->
+        <!-- ======================== VIEW 2: UPLOAD ======================== -->
         <section id="upload-view" class="view">
             <header class="top-bar">
                 <div class="logo">Shot<span>IQ</span></div>
@@ -46,15 +45,23 @@
 
             <div class="upload-wrapper glass-card">
                 <div class="upload-box" id="drop-zone">
-                    <div class="upload-icon">🏏</div>
-                    <h2>Drop your video here</h2>
-                    <p>or click to browse files</p>
+                    <div class="upload-icon" id="upload-icon">🏏</div>
+                    <h2 id="upload-heading">Drop your video here</h2>
+                    <p id="upload-sub">or click to browse files</p>
+                    <div id="file-preview" class="file-preview hidden">
+                        <div class="file-info">
+                            <span class="file-icon">🎬</span>
+                            <div class="file-details">
+                                <div class="file-name" id="file-name"></div>
+                                <div class="file-size" id="file-size"></div>
+                            </div>
+                            <span class="file-ok">✓</span>
+                        </div>
+                    </div>
                     <input type="file" id="file-input" accept="video/*" hidden>
                 </div>
 
-                <div class="sample-divider">
-                    <span>OR</span>
-                </div>
+                <div class="sample-divider"><span>OR</span></div>
 
                 <button id="sample-btn" class="btn-secondary">
                     <span>📥</span> Test with Sample Video
@@ -62,47 +69,106 @@
             </div>
         </section>
 
-        <!-- View 3: Analysis Screen -->
+        <!-- ======================== VIEW 3: ANALYSIS ======================== -->
         <section id="analysis-view" class="view">
             <header class="top-bar">
                 <div class="logo">Shot<span>IQ</span></div>
-                <button id="reset-btn" class="btn-secondary btn-small">Analyze Another Clip</button>
+                <button id="reset-btn" class="btn-icon">🔄 New Analysis</button>
             </header>
 
             <main id="main-content">
-                <section id="results-section" class="results-layout">
-                    <div class="video-panel glass-card">
-                        <div class="video-container">
+
+                <!-- Loading Panel -->
+                <div id="loading-state" class="loading-panel hidden">
+                    <div class="loading-glow"></div>
+                    <div class="loader"></div>
+                    <h3 id="loading-title">Analyzing Performance</h3>
+                    <p class="loading-sub">AI is processing your cricket clip…</p>
+                    <ul class="progress-list">
+                        <li id="step-1" class="pending"><span></span> Preparing video data</li>
+                        <li id="step-2" class="pending"><span></span> Connecting to Gemini AI</li>
+                        <li id="step-3" class="pending"><span></span> Generating technical report</li>
+                    </ul>
+                </div>
+
+                <!-- Results Section (hidden until parsed) -->
+                <div id="results-section" class="hidden">
+
+                    <!-- VIDEO HERO -->
+                    <div class="video-hero glass-card">
+                        <div class="video-wrapper">
                             <video id="video-preview" controls playsinline loop muted></video>
+                            <div class="video-gradient"></div>
+
+                            <!-- Live badge -->
+                            <div class="badge-live">● LIVE ANALYSIS</div>
+
+                            <!-- Confidence Ring -->
+                            <div class="confidence-ring-wrap">
+                                <svg class="confidence-ring-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#00f2fe"/>
+                                            <stop offset="100%" stop-color="#4facfe"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                                    <circle class="ring-arc" cx="60" cy="60" r="50" id="ring-arc"/>
+                                </svg>
+                                <div class="ring-center">
+                                    <div class="ring-value" id="ring-value">0</div>
+                                    <div class="ring-sub">Confidence</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shot Meta Info -->
+                        <div class="shot-meta">
+                            <div class="shot-colloquial" id="shot-colloquial"></div>
+                            <div class="shot-mechanical" id="shot-mechanical"></div>
+                            <div class="shot-pills" id="shot-pills"></div>
                         </div>
                     </div>
 
-                    <div class="analysis-panel glass-card">
-                        <div id="loading-state" class="hidden">
-                            <div class="loader"></div>
-                            <h3 id="loading-title">Analyzing Performance</h3>
-                            <ul class="progress-list">
-                                <li id="step-1" class="pending"><span></span> Preparing technical data</li>
-                                <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
-                                <li id="step-3" class="pending"><span></span> Generating technical report</li>
-                            </ul>
-                        </div>
-                        <div id="analysis-reasoning" class="hidden">
-                            <!-- Thinking process injected here -->
-                        </div>
-                        <div id="analysis-content">
-                            <!-- Content injected by main.js -->
-                        </div>
-                        <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
-                            <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
+                    <!-- METRICS GRID -->
+                    <div class="metrics-new" id="metrics-grid-new"></div>
+
+                    <!-- EVAL CARDS (Batter + Bowler) -->
+                    <div class="eval-grid" id="eval-section"></div>
+
+                    <!-- OBSERVATIONS TIMELINE -->
+                    <div id="timeline-section"></div>
+
+                    <!-- AI REASONING ACCORDION -->
+                    <div class="accordion-card glass-card" id="reasoning-accordion-wrap">
+                        <button class="accordion-trigger" id="reasoning-toggle">
+                            <span>🧠 AI Technical Reasoning</span>
+                            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="accordion-body" id="reasoning-body">
+                            <div id="analysis-reasoning"></div>
                         </div>
                     </div>
-                </section>
+
+                    <!-- ACTION BAR -->
+                    <div class="action-bar" id="action-buttons">
+                        <button id="download-btn" class="btn-action btn-download">
+                            ⬇ Download Report
+                        </button>
+                        <button id="copy-json-btn" class="btn-action btn-copy">
+                            📋 Copy JSON
+                        </button>
+                    </div>
+
+                </div><!-- /results-section -->
+
             </main>
         </section>
 
         <footer>
-            <p>&copy; 2026 ShotIQ. Precision Analysis for the Modern Game.</p>
+            <p>© 2026 ShotIQ. Precision Analysis for the Modern Game.</p>
         </footer>
     </div>
 
