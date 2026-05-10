@@ -5,7 +5,7 @@
 
 // --- CONFIGURATION ---
 const KEY_ENDPOINT = 'api/key.php';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent';
 
 
 // (CRICKET_ANALYSIS_PROMPT is now loaded from prompts.js)
@@ -94,12 +94,20 @@ async function analyzeWithGemini(file) {
         const base64 = await fileToBase64(file);
         updateStep(1, 'done');
 
-        // STEP 2: Technical Reasoning
+        // STEP 2: Fetch API key from server
         updateStep(2, 'active');
-        // Step 2 and 3 happen together in this mode
+        const keyRes = await fetch(KEY_ENDPOINT, { method: 'POST' });
+        const keyData = await keyRes.json();
+        if (!keyRes.ok || !keyData.key) {
+            throw new Error(keyData.error || 'Failed to retrieve API key from server.');
+        }
+        const API_ENDPOINT = `${GEMINI_API_BASE}?key=${keyData.key}`;
+        updateStep(2, 'done');
+
+        // STEP 3: Call Gemini directly with the key
         updateStep(3, 'active');
 
-        // Analysis request to PHP backend
+        // Analysis request directly to Gemini
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 
