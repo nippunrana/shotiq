@@ -216,8 +216,16 @@ async function analyzeWithGemini(file) {
         const textPart = parts.find(p => p.text && !p.thought);
 
         if (thoughtPart) {
-            document.getElementById('analysis-reasoning').textContent = thoughtPart.text;
-            rawReasoningText = thoughtPart.text;
+            let cleanThought = thoughtPart.text;
+            const jsonBlockIndex = cleanThought.indexOf("```json");
+            if (jsonBlockIndex !== -1) {
+                cleanThought = cleanThought.substring(0, jsonBlockIndex);
+            }
+            cleanThought = cleanThought.replace(/Here'?s (my summary|the output|my structured summary).*$/s, '');
+            cleanThought = cleanThought.trim();
+
+            document.getElementById('analysis-reasoning').textContent = cleanThought;
+            rawReasoningText = cleanThought;
         }
 
         if (!textPart) throw new Error("No structured analysis returned.");
