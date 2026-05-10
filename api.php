@@ -8,21 +8,27 @@ header('Content-Type: application/json');
 
 // 0. Handle GET request for key status info
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $envFile = __DIR__ . '/.env';
     $serverKeySet = false;
     $maskedKey = '';
 
-    if (file_exists($envFile)) {
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos(trim($line), 'GEMINI_API_KEY') === 0) {
-                $parts = explode('=', $line, 2);
-                $val = trim($parts[1] ?? '');
-                if ($val && $val !== 'YOUR_GEMINI_API_KEY_HERE') {
-                    $serverKeySet = true;
-                    $maskedKey = '****' . substr($val, -4);
+    $sysKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? '');
+    if ($sysKey && $sysKey !== 'YOUR_GEMINI_API_KEY_HERE') {
+        $serverKeySet = true;
+        $maskedKey = '****' . substr($sysKey, -4);
+    } else {
+        $envFile = __DIR__ . '/.env';
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos(trim($line), 'GEMINI_API_KEY') === 0) {
+                    $parts = explode('=', $line, 2);
+                    $val = trim($parts[1] ?? '');
+                    if ($val && $val !== 'YOUR_GEMINI_API_KEY_HERE') {
+                        $serverKeySet = true;
+                        $maskedKey = '****' . substr($val, -4);
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -30,25 +36,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// 1. Load .env file manually (minimalist approach)
-$envFile = __DIR__ . '/.env';
-if (!file_exists($envFile)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Server Configuration Error: .env file missing.']);
-    exit;
-}
+// 1. Load Server API Key
+$serverKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? '');
 
-$env = [];
-$lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-foreach ($lines as $line) {
-    if (strpos(trim($line), '#') === 0) continue;
-    $parts = explode('=', $line, 2);
-    if (count($parts) === 2) {
-        $env[trim($parts[0])] = trim($parts[1]);
+if (!$serverKey) {
+    $envFile = __DIR__ . '/.env';
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) continue;
+            $parts = explode('=', $line, 2);
+            if (count($parts) === 2 && trim($parts[0]) === 'GEMINI_API_KEY') {
+                $serverKey = trim($parts[1]);
+            }
+        }
     }
 }
-
-$serverKey = $env['GEMINI_API_KEY'] ?? '';
 $browserKey = $_SERVER['HTTP_X_GEMINI_API_KEY'] ?? '';
 $requestedSource = $_SERVER['HTTP_X_API_SOURCE'] ?? 'auto';
 
