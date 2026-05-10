@@ -6,6 +6,30 @@
 
 header('Content-Type: application/json');
 
+// 0. Handle GET request for key status info
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $envFile = __DIR__ . '/.env';
+    $serverKeySet = false;
+    $maskedKey = '';
+
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), 'GEMINI_API_KEY') === 0) {
+                $parts = explode('=', $line, 2);
+                $val = trim($parts[1] ?? '');
+                if ($val && $val !== 'YOUR_GEMINI_API_KEY_HERE') {
+                    $serverKeySet = true;
+                    $maskedKey = '****' . substr($val, -4);
+                }
+                break;
+            }
+        }
+    }
+    echo json_encode(['serverKeySet' => $serverKeySet, 'maskedKey' => $maskedKey]);
+    exit;
+}
+
 // 1. Load .env file manually (minimalist approach)
 $envFile = __DIR__ . '/.env';
 if (!file_exists($envFile)) {
@@ -17,32 +41,40 @@ if (!file_exists($envFile)) {
 $env = [];
 $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 foreach ($lines as $line) {
-    // Skip comments
     if (strpos(trim($line), '#') === 0) continue;
-    
-    // Split into name and value
     $parts = explode('=', $line, 2);
     if (count($parts) === 2) {
         $env[trim($parts[0])] = trim($parts[1]);
     }
 }
 
-$apiKey = $env['GEMINI_API_KEY'] ?? '';
+$serverKey = $env['GEMINI_API_KEY'] ?? '';
+$browserKey = $_SERVER['HTTP_X_GEMINI_API_KEY'] ?? '';
+$requestedSource = $_SERVER['HTTP_X_API_SOURCE'] ?? 'auto';
 
-// Check if API Key is in .env; if not, check for header fallback from frontend
-if (!$apiKey || $apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
-    $fallbackKey = $_SERVER['HTTP_X_GEMINI_API_KEY'] ?? '';
-    
-    if ($fallbackKey) {
-        $apiKey = $fallbackKey;
+$apiKey = '';
+
+if ($requestedSource === 'server') {
+    $apiKey = ($serverKey !== 'YOUR_GEMINI_API_KEY_HERE') ? $serverKey : '';
+} elseif ($requestedSource === 'browser') {
+    $apiKey = $browserKey;
+} else {
+    // Auto-fallback logic
+    if ($serverKey && $serverKey !== 'YOUR_GEMINI_API_KEY_HERE') {
+        $apiKey = $serverKey;
     } else {
-        http_response_code(401);
-        echo json_encode([
-            'error' => 'API_KEY_REQUIRED',
-            'message' => 'No API Key found. Please add it to the server .env file or enter it in the settings.'
-        ]);
-        exit;
+        $apiKey = $browserKey;
     }
+}
+
+// Final validation
+if (!$apiKey) {
+    http_response_code(401);
+    echo json_encode([
+        'error' => 'API_KEY_REQUIRED',
+        'message' => 'No valid API Key found for the selected source.'
+    ]);
+    exit;
 }
 
 // 2. Handle the request

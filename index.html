@@ -22,9 +22,28 @@
         <div id="api-panel" class="api-panel glass-card">
             <h4>API Configuration</h4>
             <p>Enter your Gemini API key to enable analysis. The key is stored locally in your browser as a fallback if the server is not configured.</p>
+            <div class="api-selection-group">
+                <label class="selection-item" id="label-server">
+                    <input type="radio" name="api-source" value="server" checked>
+                    <div class="selection-content">
+                        <span class="selection-title">Server Configuration</span>
+                        <span class="selection-key" id="server-key-display">****----</span>
+                    </div>
+                </label>
+                <label class="selection-item" id="label-browser">
+                    <input type="radio" name="api-source" value="browser">
+                    <div class="selection-content">
+                        <span class="selection-title">Browser Fallback</span>
+                        <span class="selection-key" id="browser-key-display">****----</span>
+                    </div>
+                </label>
+            </div>
             <div class="input-group">
                 <input type="password" id="api-key-input" class="api-input" placeholder="Enter Gemini API Key">
-                <button id="save-api-btn" class="btn-primary">Save Configuration</button>
+                <div class="btn-group-row">
+                    <button id="save-api-btn" class="btn-primary">Save Key</button>
+                    <button id="clear-api-btn" class="btn-outline-danger">Clear</button>
+                </div>
             </div>
         </div>
     </div>

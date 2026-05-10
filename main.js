@@ -6,6 +6,7 @@
 // --- CONFIGURATION ---
 const API_ENDPOINT = 'api.php';
 let API_KEY = localStorage.getItem('shotiq_api_key') || '';
+let API_SOURCE = localStorage.getItem('shotiq_api_source') || 'server';
 const SAMPLE_VIDEO_URL = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
 
 // (CRICKET_ANALYSIS_PROMPT is now loaded from prompts.js)
@@ -27,9 +28,24 @@ const settingsToggle = document.getElementById('settings-toggle');
 const apiPanel = document.getElementById('api-panel');
 const apiKeyInput = document.getElementById('api-key-input');
 const saveApiBtn = document.getElementById('save-api-btn');
+const clearApiBtn = document.getElementById('clear-api-btn');
+const serverKeyDisplay = document.getElementById('server-key-display');
+const browserKeyDisplay = document.getElementById('browser-key-display');
+const sourceRadios = document.getElementsByName('api-source');
 
-// Initialize API Key input
+// Initialize API Key input and status
 if (API_KEY) apiKeyInput.value = API_KEY;
+
+// Set initial radio
+sourceRadios.forEach(r => {
+    if (r.value === API_SOURCE) r.checked = true;
+    r.onchange = (e) => {
+        API_SOURCE = e.target.value;
+        localStorage.setItem('shotiq_api_source', API_SOURCE);
+    };
+});
+
+updateApiStatus();
 
 // --- EVENTS ---
 dropZone.onclick = () => fileInput.click();
@@ -72,11 +88,62 @@ saveApiBtn.onclick = () => {
         API_KEY = newKey;
         localStorage.setItem('shotiq_api_key', newKey);
         alert('API Key saved successfully!');
+        updateApiStatus();
         apiPanel.classList.remove('active');
     } else {
         alert('Please enter a valid API Key.');
     }
 };
+
+clearApiBtn.onclick = () => {
+    if (confirm('Clear the browser-stored API key?')) {
+        API_KEY = '';
+        localStorage.removeItem('shotiq_api_key');
+        apiKeyInput.value = '';
+        alert('Browser API Key cleared.');
+        updateApiStatus();
+    }
+};
+
+async function updateApiStatus() {
+    // 1. Update Browser Key Display
+    if (API_KEY) {
+        browserKeyDisplay.textContent = '****' + API_KEY.slice(-4);
+        document.getElementById('label-browser').classList.remove('disabled');
+    } else {
+        browserKeyDisplay.textContent = '****----';
+        document.getElementById('label-browser').classList.add('disabled');
+        // If current source is browser but no key, switch to server
+        if (API_SOURCE === 'browser') {
+            API_SOURCE = 'server';
+            localStorage.setItem('shotiq_api_source', 'server');
+            document.querySelector('input[value="server"]').checked = true;
+        }
+    }
+    
+    // 2. Fetch Server Status
+    try {
+        const response = await fetch(API_ENDPOINT);
+        const data = await response.json();
+        
+        if (data.serverKeySet) {
+            serverKeyDisplay.textContent = data.maskedKey;
+            document.getElementById('label-server').classList.remove('disabled');
+        } else {
+            serverKeyDisplay.textContent = 'Not Configured';
+            document.getElementById('label-server').classList.add('disabled');
+            // Fallback selection
+            if (API_SOURCE === 'server') {
+                API_SOURCE = 'browser';
+                localStorage.setItem('shotiq_api_source', 'browser');
+                const browserRadio = document.querySelector('input[value="browser"]');
+                if (browserRadio) browserRadio.checked = true;
+            }
+        }
+    } catch (err) {
+        serverKeyDisplay.textContent = 'Error Checking';
+    }
+}
 
 // --- LOGIC ---
 async function handleFile(file) {
@@ -129,7 +196,8 @@ async function analyzeWithGemini(file) {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'X-Gemini-API-Key': API_KEY // Optional fallback
+                'X-Gemini-API-Key': API_KEY,
+                'X-Api-Source': API_SOURCE
             },
             body: JSON.stringify({
                 contents: [{
