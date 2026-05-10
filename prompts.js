@@ -1,10 +1,9 @@
 /**
- * Analysis Prompt for Gemini 3 Flash
- * This file contains the instructions for the AI to analyze cricket shot videos.
- * You can modify this prompt to change the depth or focus of the analysis.
+ * ShotIQ | AI Prompts Configuration
+ * Use this file to modify the behavior and analysis criteria of the Gemini AI.
  */
 
-export const CRICKET_ANALYSIS_PROMPT = `
+const CRICKET_ANALYSIS_PROMPT = `
 Role: You are an expert Cricket Analyst and Data Scientist.
 
 Task: Analyze the provided cricket video or image and return insights that go beyond basic score/speed commentary. Break the play into four layers:
