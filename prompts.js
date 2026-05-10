@@ -38,6 +38,7 @@ Output Format: Strict JSON only. Do not include markdown formatting, markdown co
     "shot_type_colloquial": "Popular/fan name or Unknown",
     "direction": "Field region (e.g., Mid-wicket, Long-on) or Unknown",
     "characteristics": "Brief description of footwork, bat path, and follow-through or Unknown",
+    "detailed_technical_reasoning": "A comprehensive 2-3 paragraph technical deep-dive into the execution, biomechanics, and impact. Must be written in a professional, polished tone suitable for a modern elite cricket app. Do not include internal thought processes, do not mention JSON, and do not mention formatting.",
     "overall_confidence": 0,
     "delivery_data": {
       "length": "Yorker/Full/Good/Short/Unknown",

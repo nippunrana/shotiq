@@ -1063,24 +1063,6 @@ footer {
     color: #64748b;
 }
 
-.pdf-screenshot-wrap {
-    width: 100%;
-    height: 400px;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#pdf-screenshot {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
 .pdf-title {
     margin-bottom: 25px;
 }
@@ -1100,6 +1082,27 @@ footer {
     letter-spacing: 1px;
 }
 
+.pdf-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.pdf-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 10px 0;
+}
+
+.pdf-section p {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
 .pdf-metrics {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

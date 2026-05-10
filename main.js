@@ -212,25 +212,16 @@ async function analyzeWithGemini(file) {
         updateStep(3, 'done');
 
         const parts = data.candidates[0].content.parts;
-        const thoughtPart = parts.find(p => p.thought === true);
         const textPart = parts.find(p => p.text && !p.thought);
-
-        if (thoughtPart) {
-            let cleanThought = thoughtPart.text;
-            const jsonBlockIndex = cleanThought.indexOf("```json");
-            if (jsonBlockIndex !== -1) {
-                cleanThought = cleanThought.substring(0, jsonBlockIndex);
-            }
-            cleanThought = cleanThought.replace(/Here'?s (my summary|the output|my structured summary).*$/s, '');
-            cleanThought = cleanThought.trim();
-
-            document.getElementById('analysis-reasoning').textContent = cleanThought;
-            rawReasoningText = cleanThought;
-        }
 
         if (!textPart) throw new Error("No structured analysis returned.");
 
         rawAnalysisJSON = JSON.parse(textPart.text);
+        
+        // Use the newly added field from the JSON instead of the raw thoughtPart
+        const polishedReasoning = rawAnalysisJSON.detailed_technical_reasoning || "Technical reasoning not available.";
+        document.getElementById('analysis-reasoning').textContent = polishedReasoning;
+        rawReasoningText = polishedReasoning;
         
         loadingState.classList.add('hidden');
         renderPremiumUI(rawAnalysisJSON);
@@ -404,20 +395,22 @@ async function downloadReport() {
     showToast('Generating PDF Report...', 'info');
 
     try {
-        // 1. Capture Video Frame
-        const canvas = document.createElement('canvas');
-        canvas.width = videoPreview.videoWidth;
-        canvas.height = videoPreview.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(videoPreview, 0, 0, canvas.width, canvas.height);
-        const frameDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-
-        // 2. Populate Template
+        // 1. Populate Template
         document.getElementById('pdf-date').textContent = new Date().toLocaleDateString();
-        document.getElementById('pdf-screenshot').src = frameDataUrl;
         document.getElementById('pdf-shot-name').textContent = rawAnalysisJSON.shot_type_mechanical || 'Shot Analysis';
         document.getElementById('pdf-shot-colloquial').textContent = rawAnalysisJSON.shot_type_colloquial || '';
         document.getElementById('pdf-reasoning-text').textContent = rawReasoningText || 'No technical reasoning provided.';
+        
+        // Populate Characteristics
+        document.getElementById('pdf-characteristics').textContent = rawAnalysisJSON.characteristics || 'No characteristics provided.';
+
+        // Populate Observations
+        const obsList = document.getElementById('pdf-observations');
+        if (rawAnalysisJSON.observations && rawAnalysisJSON.observations.length > 0) {
+            obsList.innerHTML = rawAnalysisJSON.observations.map(obs => `<li style="margin-bottom: 8px;">${obs}</li>`).join('');
+        } else {
+            obsList.innerHTML = '<li>No observations provided.</li>';
+        }
 
         // Populate Metrics
         const metrics = [
@@ -464,7 +457,7 @@ async function downloadReport() {
             </div>
         `;
 
-        // 3. Generate PDF
+        // 2. Generate PDF
         const template = document.getElementById('pdf-template');
         template.parentElement.style.display = 'block'; // Make visible temporarily for html2pdf
         
