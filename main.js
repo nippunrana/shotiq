@@ -186,6 +186,7 @@ async function analyzeWithGemini(file) {
         updateStep(2, 'done');
 
         updateStep(3, 'active');
+        const loadingInterval = startDynamicLoadingText();
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -223,15 +224,40 @@ async function analyzeWithGemini(file) {
         document.getElementById('analysis-reasoning').textContent = polishedReasoning;
         rawReasoningText = polishedReasoning;
         
+        clearInterval(loadingInterval);
         loadingState.classList.add('hidden');
         renderPremiumUI(rawAnalysisJSON);
         
     } catch (err) {
+        if (typeof loadingInterval !== 'undefined') clearInterval(loadingInterval);
         loadingState.classList.add('hidden');
         showToast(`Error: ${err.message}`, 'error');
         // Back to upload on error
         setTimeout(() => resetBtn.click(), 3000);
     }
+}
+
+function startDynamicLoadingText() {
+    const loadingSub = document.getElementById('loading-dynamic-text');
+    const messages = [
+        "Calibrating body markers...",
+        "Tracking ball trajectory...",
+        "Analyzing bat path geometry...",
+        "Identifying kinematic sequences...",
+        "Synthesizing elite coach feedback...",
+        "Generating biomechanical report...",
+        "Finalizing neural scan..."
+    ];
+    let i = 0;
+    loadingSub.style.transition = 'opacity 0.3s ease';
+    return setInterval(() => {
+        i = (i + 1) % messages.length;
+        loadingSub.style.opacity = 0;
+        setTimeout(() => {
+            loadingSub.textContent = messages[i];
+            loadingSub.style.opacity = 1;
+        }, 300);
+    }, 2500);
 }
 
 function fileToBase64(file) {

@@ -179,23 +179,69 @@ body {
 }
 
 .upload-box {
-    border: 2px dashed var(--card-border);
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: var(--radius-md);
-    padding: 3rem;
+    padding: 4rem 3rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+}
+
+/* HUD Corners */
+.hud-corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--accent-primary);
+    opacity: 0.3;
+    transition: all 0.4s ease;
+}
+
+.top-left { top: 15px; left: 15px; border-right: 0; border-bottom: 0; }
+.top-right { top: 15px; right: 15px; border-left: 0; border-bottom: 0; }
+.bottom-left { bottom: 15px; left: 15px; border-right: 0; border-top: 0; }
+.bottom-right { bottom: 15px; right: 15px; border-left: 0; border-top: 0; }
+
+.upload-box:hover .hud-corner, .upload-box.dragover .hud-corner {
+    opacity: 1;
+    width: 35px;
+    height: 35px;
+    filter: drop-shadow(0 0 8px var(--accent-primary));
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.upload-box:hover .scan-line, .upload-box.dragover .scan-line {
+    opacity: 0.5;
+    animation: scanVertical 3s linear infinite;
+}
+
+@keyframes scanVertical {
+    0% { top: 0; }
+    100% { top: 100%; }
 }
 
 .upload-box:hover, .upload-box.dragover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border-color: var(--accent-primary);
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
+    box-shadow: 0 0 30px rgba(0, 242, 254, 0.1), inset 0 0 50px rgba(0, 242, 254, 0.05);
 }
 
 .upload-box.dragover {
-    transform: scale(1.02);
+    transform: scale(1.01);
 }
 
 .upload-icon {
@@ -291,6 +337,53 @@ body {
     font-weight: 600;
 }
 
+/* Capabilities Ribbon */
+.capabilities-ribbon {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 3.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cap-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+    transition: transform 0.3s ease;
+}
+
+.cap-item:hover {
+    transform: translateY(-5px);
+}
+
+.cap-icon {
+    font-size: 1.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.cap-text strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    letter-spacing: 0.5px;
+}
+
+.cap-text span {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
 /* Buttons */
 .btn-large {
     font-size: 1.2rem;
@@ -356,42 +449,115 @@ body {
 /* Loading Panel */
 .loading-panel {
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
-    padding: 4rem 2rem;
+    padding: 5rem 3rem;
     text-align: center;
     position: relative;
     overflow: hidden;
-    max-width: 600px;
+    max-width: 650px;
     margin: 0 auto;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
 }
 
-.loading-glow {
+/* Loading HUD */
+.loading-hud {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(0,242,254,0.1) 0%, transparent 60%);
-    animation: rotate 10s linear infinite;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.hud-scanner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0, 242, 254, 0.03) 40px);
+    animation: hudMove 10s linear infinite;
+}
+
+@keyframes hudMove {
+    from { transform: translateY(0); }
+    to { transform: translateY(40px); }
+}
+
+.hud-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    box-shadow: 0 0 20px var(--accent-primary);
+    animation: hudScan 4s ease-in-out infinite;
+}
+
+@keyframes hudScan {
+    0%, 100% { top: 10%; opacity: 0.2; }
+    50% { top: 90%; opacity: 0.8; }
+}
+
+.hud-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+}
+
+.loader-wrap {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 2.5rem;
+    z-index: 2;
 }
 
 .loader {
-    width: 64px;
-    height: 64px;
-    border: 4px solid var(--card-border);
-    border-bottom-color: var(--accent-primary);
+    width: 100%;
+    height: 100%;
+    border: 4px solid rgba(0, 242, 254, 0.1);
+    border-top-color: var(--accent-primary);
     border-radius: 50%;
-    margin: 0 auto 2rem;
-    animation: rotation 1s linear infinite;
+    animation: rotation 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+}
+
+.loader-inner {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 3px solid transparent;
+    border-top-color: var(--accent-secondary);
+    border-radius: 50%;
+    animation: rotation 1s linear infinite reverse;
+    opacity: 0.7;
+}
+
+.loading-panel h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
+}
+
+.loading-sub {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 2;
 }
 
 @keyframes rotation {

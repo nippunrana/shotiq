@@ -45,6 +45,13 @@
 
             <div class="upload-wrapper glass-card">
                 <div class="upload-box" id="drop-zone">
+                    <!-- HUD Elements -->
+                    <div class="hud-corner top-left"></div>
+                    <div class="hud-corner top-right"></div>
+                    <div class="hud-corner bottom-left"></div>
+                    <div class="hud-corner bottom-right"></div>
+                    <div class="scan-line"></div>
+
                     <div class="upload-icon" id="upload-icon">🏏</div>
                     <h2 id="upload-heading">Drop your video here</h2>
                     <p id="upload-sub">or click to browse files</p>
@@ -66,6 +73,31 @@
                 <button id="sample-btn" class="btn-secondary">
                     <span>📥</span> Test with Sample Video
                 </button>
+
+                <!-- NEW: Capabilities Ribbon -->
+                <div class="capabilities-ribbon">
+                    <div class="cap-item">
+                        <span class="cap-icon">🧬</span>
+                        <div class="cap-text">
+                            <strong>Biomechanics</strong>
+                            <span>Kinematic tracking</span>
+                        </div>
+                    </div>
+                    <div class="cap-item">
+                        <span class="cap-icon">🧶</span>
+                        <div class="cap-text">
+                            <strong>Trajectory</strong>
+                            <span>Ball path analysis</span>
+                        </div>
+                    </div>
+                    <div class="cap-item">
+                        <span class="cap-icon">👔</span>
+                        <div class="cap-text">
+                            <strong>Coaching</strong>
+                            <span>Elite feedback</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -80,10 +112,18 @@
 
                 <!-- Loading Panel -->
                 <div id="loading-state" class="loading-panel hidden">
+                    <div class="loading-hud">
+                        <div class="hud-scanner"></div>
+                        <div class="hud-line"></div>
+                        <div class="hud-grid"></div>
+                    </div>
                     <div class="loading-glow"></div>
-                    <div class="loader"></div>
-                    <h3 id="loading-title">Analyzing Performance</h3>
-                    <p class="loading-sub">AI is processing your cricket clip…</p>
+                    <div class="loader-wrap">
+                        <div class="loader"></div>
+                        <div class="loader-inner"></div>
+                    </div>
+                    <h3 id="loading-title">Initializing Neural Scan</h3>
+                    <p class="loading-sub" id="loading-dynamic-text">Analyzing body markers and ball trajectory…</p>
                     <ul class="progress-list">
                         <li id="step-1" class="pending"><span></span> Preparing video data</li>
                         <li id="step-2" class="pending"><span></span> Connecting to Gemini AI</li>
