@@ -260,10 +260,35 @@ async function analyzeWithGemini(file) {
 
         if (thoughtPart) {
             reasoningContainer.innerHTML = `
-                <div class="reasoning-header">🧠 AI Technical Reasoning</div>
-                <div class="reasoning-body">${thoughtPart.text}</div>
+                <div class="reasoning-header" id="reasoning-toggle-btn" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; width: 100%;">
+                    <span>🧠 AI Biomechanical Telemetry (Click to expand)</span>
+                    <span class="toggle-icon" style="transition: transform 0.3s ease;">▼</span>
+                </div>
+                <div class="reasoning-body collapsed" id="reasoning-collapse-body">${thoughtPart.text}</div>
             `;
             reasoningContainer.classList.remove('hidden');
+            
+            const toggleBtn = document.getElementById('reasoning-toggle-btn');
+            const collapseBody = document.getElementById('reasoning-collapse-body');
+            
+            toggleBtn.onclick = () => {
+                const isCollapsed = collapseBody.classList.contains('collapsed');
+                const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+                const toggleText = toggleBtn.querySelector('span');
+                
+                if (isCollapsed) {
+                    collapseBody.classList.remove('collapsed');
+                    toggleIcon.textContent = '▲';
+                    toggleIcon.style.transform = 'rotate(180deg)';
+                    toggleText.textContent = '🧠 AI Biomechanical Telemetry';
+                } else {
+                    collapseBody.classList.add('collapsed');
+                    toggleIcon.textContent = '▼';
+                    toggleIcon.style.transform = 'rotate(0deg)';
+                    toggleText.textContent = '🧠 AI Biomechanical Telemetry (Click to expand)';
+                }
+            };
+            
             reportText += `TECHNICAL REASONING:\n${thoughtPart.text}\n\n`;
         }
 

@@ -117,42 +117,45 @@
             </section>
 
             <!-- Results Section (Hidden by default) -->
-            <section id="results-section" class="results-layout">
-                <div class="video-panel glass-card">
-                    <div class="video-container-hud">
-                        <div class="hud-bracket top-left"></div>
-                        <div class="hud-bracket top-right"></div>
-                        <div class="hud-bracket bottom-left"></div>
-                        <div class="hud-bracket bottom-right"></div>
-                        <div class="video-container">
-                            <video id="video-preview" controls playsinline loop muted></video>
+            <section id="results-section" class="results-container">
+                <div class="results-grid">
+                    <div class="video-panel glass-card">
+                        <div class="video-container-hud">
+                            <div class="hud-bracket top-left"></div>
+                            <div class="hud-bracket top-right"></div>
+                            <div class="hud-bracket bottom-left"></div>
+                            <div class="hud-bracket bottom-right"></div>
+                            <div class="video-container">
+                                <video id="video-preview" controls playsinline loop muted></video>
+                            </div>
+                        </div>
+                        <button id="reset-btn" class="btn-outline">Analyze Another Clip</button>
+                    </div>
+    
+                    <div class="analysis-panel glass-card">
+                        <div id="loading-state" class="hidden">
+                            <div class="loader-hud">
+                                <div class="loader-circle"></div>
+                                <div class="loader-text">SCANNING</div>
+                            </div>
+                            <h3 id="loading-title">Analyzing Performance</h3>
+                            <ul class="progress-list">
+                                <li id="step-1" class="pending"><span></span> Preparing technical data</li>
+                                <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
+                                <li id="step-3" class="pending"><span></span> Generating technical report</li>
+                            </ul>
+                        </div>
+                        <div id="analysis-content">
+                            <!-- Content injected by main.js -->
+                        </div>
+                        <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
+                            <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
                         </div>
                     </div>
-                    <button id="reset-btn" class="btn-outline">Analyze Another Clip</button>
                 </div>
 
-                <div class="analysis-panel glass-card">
-                    <div id="loading-state" class="hidden">
-                        <div class="loader-hud">
-                            <div class="loader-circle"></div>
-                            <div class="loader-text">SCANNING</div>
-                        </div>
-                        <h3 id="loading-title">Analyzing Performance</h3>
-                        <ul class="progress-list">
-                            <li id="step-1" class="pending"><span></span> Preparing technical data</li>
-                            <li id="step-2" class="pending"><span></span> Biomechanical reasoning</li>
-                            <li id="step-3" class="pending"><span></span> Generating technical report</li>
-                        </ul>
-                    </div>
-                    <div id="analysis-reasoning" class="hidden">
-                        <!-- Thinking process injected here -->
-                    </div>
-                    <div id="analysis-content">
-                        <!-- Content injected by main.js -->
-                    </div>
-                    <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
-                        <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
-                    </div>
+                <div id="analysis-reasoning" class="glass-card hidden">
+                    <!-- Thinking process injected here -->
                 </div>
             </section>
         </main>
