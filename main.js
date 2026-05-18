@@ -51,6 +51,22 @@ updateApiStatus();
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = (e) => e.target.files[0] && handleFile(e.target.files[0]);
 
+// Drag and drop biomechanical scanner triggers
+dropZone.ondragover = (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+};
+dropZone.ondragleave = () => {
+    dropZone.classList.remove('dragover');
+};
+dropZone.ondrop = (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+};
+
 resetBtn.onclick = () => {
     resultsSection.classList.remove('active');
     uploadSection.classList.add('active');

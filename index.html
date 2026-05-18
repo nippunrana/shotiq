@@ -49,43 +49,94 @@
     </div>
 
     <div class="container">
-        <header>
-            <div class="logo">Shot<span>IQ</span></div>
-            <h1>Cricket Shot Analyzer <span class="version">V1.03</span></h1>
-            <p class="subtitle">Upload your batting clips for instant technical analysis powered by Gemini 3 Flash.</p>
+        <!-- Floating Header Navbar -->
+        <header class="navbar glass-card">
+            <div class="logo">Shot<span class="highlight-volt">IQ</span></div>
+            <div class="nav-right">
+                <span class="hud-status">
+                    <span class="status-dot pulsing"></span> SYSTEM ACTIVE
+                </span>
+            </div>
         </header>
 
         <main id="main-content">
-            <!-- Upload Section -->
-            <section id="upload-section" class="glass-card active">
-                <div class="upload-box" id="drop-zone">
-                    <div class="upload-icon">🏏</div>
-                    <h2>Drop your video here</h2>
-                    <p>or click to browse files</p>
-                    <input type="file" id="file-input" accept="video/*" hidden>
+            <!-- Upload Section (Dynamic Visual Split Screen) -->
+            <section id="upload-section" class="hero-split-container active">
+                <div class="hero-info-column">
+                    <div class="hud-badge">PRECISION ANALYSIS V1.03</div>
+                    <h1 class="hero-headline">Decode Your Swing <br><span class="highlight-volt">In Milliseconds</span></h1>
+                    <p class="hero-subtitle">Upload your batting clips for instant, frame-by-frame biomechanical reasoning powered by <span class="highlight-white">Gemini 3 Flash</span>.</p>
+                    
+                    <ul class="benefit-list">
+                        <li>
+                            <div class="benefit-icon">⚡</div>
+                            <div class="benefit-text">
+                                <strong>Direct Video Telemetry</strong>
+                                <span>Analyze swing plane, impact speed, and launch angles.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="benefit-icon">🧠</div>
+                            <div class="benefit-text">
+                                <strong>Dual Coaching Feedback</strong>
+                                <span>Get distinct actionable lessons for both batter and bowler.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="benefit-icon">🔒</div>
+                            <div class="benefit-text">
+                                <strong>Sovereign Privacy</strong>
+                                <span>Keys stored locally. Direct-to-Gemini secure backend connection.</span>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="sample-divider">
-                    <span>OR</span>
+                <div class="hero-upload-column">
+                    <div class="upload-hud-wrapper glass-card">
+                        <div class="upload-box" id="drop-zone">
+                            <div class="scanner-ring-container">
+                                <div class="scanner-ring pulse-1"></div>
+                                <div class="scanner-ring pulse-2"></div>
+                                <div class="scanner-icon">🏏</div>
+                            </div>
+                            <h2>Drop your video here</h2>
+                            <p class="upload-subtext">or click to browse files</p>
+                            <input type="file" id="file-input" accept="video/*" hidden>
+                        </div>
+        
+                        <div class="sample-divider">
+                            <span>OR</span>
+                        </div>
+        
+                        <button id="sample-btn" class="btn-secondary">
+                            <span class="btn-icon">⚡</span> Test with Sample Video
+                        </button>
+                    </div>
                 </div>
-
-                <button id="sample-btn" class="btn-secondary">
-                    <span>📥</span> Test with Sample Video
-                </button>
             </section>
 
             <!-- Results Section (Hidden by default) -->
             <section id="results-section" class="results-layout">
                 <div class="video-panel glass-card">
-                    <div class="video-container">
-                        <video id="video-preview" controls playsinline loop muted></video>
+                    <div class="video-container-hud">
+                        <div class="hud-bracket top-left"></div>
+                        <div class="hud-bracket top-right"></div>
+                        <div class="hud-bracket bottom-left"></div>
+                        <div class="hud-bracket bottom-right"></div>
+                        <div class="video-container">
+                            <video id="video-preview" controls playsinline loop muted></video>
+                        </div>
                     </div>
                     <button id="reset-btn" class="btn-outline">Analyze Another Clip</button>
                 </div>
 
                 <div class="analysis-panel glass-card">
                     <div id="loading-state" class="hidden">
-                        <div class="loader"></div>
+                        <div class="loader-hud">
+                            <div class="loader-circle"></div>
+                            <div class="loader-text">SCANNING</div>
+                        </div>
                         <h3 id="loading-title">Analyzing Performance</h3>
                         <ul class="progress-list">
                             <li id="step-1" class="pending"><span></span> Preparing technical data</li>
@@ -100,8 +151,7 @@
                         <!-- Content injected by main.js -->
                     </div>
                     <div id="action-buttons" class="hidden" style="margin-top: 2rem;">
-                        <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical
-                            Report</button>
+                        <button id="download-btn" class="btn-primary" style="width: 100%;">💾 Download Technical Report</button>
                     </div>
                 </div>
             </section>
