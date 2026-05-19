@@ -7,7 +7,7 @@
 const API_ENDPOINT = 'api.php';
 let API_KEY = localStorage.getItem('shotiq_api_key') || '';
 let API_SOURCE = localStorage.getItem('shotiq_api_source') || 'server';
-const SAMPLE_VIDEO_URL = "https://firebasestorage.googleapis.com/v0/b/shotiq-eb03a.firebasestorage.app/o/videos%2F1777807311264_WhatsApp%20Video%202026-05-03%20at%2016.22.51.mp4?alt=media&token=809168e9-8b88-4630-bbae-a10e297964c5";
+const SAMPLE_VIDEO_URL = "sample.mp4";
 
 // (CRICKET_ANALYSIS_PROMPT is now loaded from prompts.js)
 
@@ -78,6 +78,9 @@ sampleBtn.onclick = async () => {
     try {
         loadingState.classList.remove('hidden');
         const response = await fetch(SAMPLE_VIDEO_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const blob = await response.blob();
         const file = new File([blob], "sample_cricket.mp4", { type: "video/mp4" });
         handleFile(file);
@@ -220,7 +223,7 @@ async function analyzeWithGemini(file) {
                     parts: [
                         { text: "Analyze this cricket shot with deep technical reasoning: " + CRICKET_ANALYSIS_PROMPT },
                         { 
-                            inline_data: { mime_type: file.type, data: base64 }
+                            inlineData: { mimeType: file.type, data: base64 }
                         }
                     ]
                 }],
